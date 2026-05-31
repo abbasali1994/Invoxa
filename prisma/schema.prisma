@@ -53,7 +53,7 @@ model Invoice {
   ifscCode        String?
   swiftCode       String?
   templateId      String?
-  settlement      SettlementRecord?
+  settlements     SettlementRecord[]
   auditLogs       AuditLog[]
   starred         Boolean           @default(false)
   deletedAt       DateTime?
@@ -62,7 +62,7 @@ model Invoice {
 
 model SettlementRecord {
   id           String           @id @default(cuid())
-  invoiceId    String           @unique
+  invoiceId    String
   invoice      Invoice          @relation(fields: [invoiceId], references: [id])
   invoicedUSD  Float
   receivedUSD  Float?
@@ -75,6 +75,11 @@ model SettlementRecord {
   settledAt    DateTime?
   status       SettlementStatus @default(PENDING)
   notes        String?
+  actualInrReceived  Float?
+  settlementGap      Float?
+  paymentMethod      String?
+  receivingAccountId String?
+  receivingAccount   FinancialAccount? @relation("SettlementAccount", fields: [receivingAccountId], references: [id])
 }
 
 model InvoiceTemplate {
@@ -142,6 +147,7 @@ model FinancialAccount {
   walletAddress String?
   bankDetails   Json?
   expenses      Expense[]
+  receivedSettlements SettlementRecord[] @relation("SettlementAccount")
   debitEntries  JournalEntry[] @relation("DebitEntries")
   creditEntries JournalEntry[] @relation("CreditEntries")
   isActive      Boolean        @default(true)

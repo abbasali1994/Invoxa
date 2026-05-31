@@ -16,29 +16,31 @@ export async function GET() {
       }
     });
 
-    // Realized INR
-    const realizedINR = await prisma.settlementRecord.aggregate({
-      _sum: { netRealized: true }
+    // Realized INR & Settlement Gap
+    const realizedData = await prisma.settlementRecord.aggregate({
+      _sum: { actualInrReceived: true, settlementGap: true }
     });
 
     // Pending settlements
-    const pendingSettlements = await prisma.settlementRecord.aggregate({
-      _sum: { invoicedUSD: true },
+    const pendingSettlements = await prisma.invoice.aggregate({
+      _sum: { total: true },
       _count: { id: true },
-      where: { status: 'PENDING' }
+      where: { status: { in: ['SENT', 'OVERDUE'] } }
     });
 
     // Outstanding receivables
     const outstandingReceivables = await prisma.invoice.aggregate({
       _sum: { total: true },
-      where: { status: 'OVERDUE', currency: 'USD' }
+      where: { status: { in: ['SENT', 'OVERDUE'] }, currency: 'USD' }
     });
 
     return NextResponse.json({
       invoicedCurrentMonthUSD: invoicedCurrentMonth._sum.total || 0,
-      realizedINR: realizedINR._sum.netRealized || 0,
+      totalInvoicedUSD: await prisma.invoice.aggregate({ _sum: { total: true } }).then(res => res._sum.total || 0),
+      realizedINR: realizedData._sum.actualInrReceived || 0,
+      totalSettlementGap: realizedData._sum.settlementGap || 0,
       pendingSettlementsCount: pendingSettlements._count.id || 0,
-      pendingSettlementsUSD: pendingSettlements._sum.invoicedUSD || 0,
+      pendingSettlementsUSD: pendingSettlements._sum.total || 0,
       outstandingReceivablesUSD: outstandingReceivables._sum.total || 0,
     });
   } catch (error) {

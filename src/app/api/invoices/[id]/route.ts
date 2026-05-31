@@ -7,7 +7,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const invoice = await prisma.invoice.findFirst({
       where: { id: (await params).id, deletedAt: null },
-      include: { client: true, settlement: true }
+      include: { client: true, settlements: { orderBy: { settledAt: 'asc' } } }
     });
     if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(invoice);

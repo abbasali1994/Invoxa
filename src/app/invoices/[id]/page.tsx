@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import dynamic from "next/dynamic";
 import { InvoicePDFDocument } from "@/components/InvoicePDFDocument";
+import { RecordSettlementModal } from "@/components/RecordSettlementModal";
 
 const PDFViewer = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PDFViewer), {
   ssr: false,
@@ -41,10 +42,6 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       })
       .then(data => {
         setInvoice(data);
-        if (data.status === 'PAID' && !data.settlement) {
-          setShowSettlement(true);
-          setSettlementForm(prev => ({ ...prev, receivedUSD: data.total }));
-        }
       })
       .catch(() => {
         toast.error("Invoice not found");
@@ -79,10 +76,6 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       if (!res.ok) throw new Error("Failed");
       setInvoice({ ...invoice, status });
       toast.success(`Status updated to ${status}`);
-      if (status === 'PAID') {
-        setShowSettlement(true);
-        setSettlementForm(prev => ({ ...prev, receivedUSD: invoice.total }));
-      }
     } catch {
       toast.error("Failed to update status");
     }
@@ -129,29 +122,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  const saveSettlement = async () => {
-    try {
-      const res = await fetch('/api/settlements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invoiceId: invoice.id,
-          invoicedUSD: invoice.total,
-          ...settlementForm
-        })
-      });
-      if (!res.ok) throw new Error("Failed");
-      const settlement = await res.json();
-      setInvoice({ ...invoice, settlement });
-      setShowSettlement(false);
-      toast.success("Settlement recorded successfully");
-    } catch {
-      toast.error("Failed to save settlement");
-    }
+  const fetchInvoice = () => {
+    fetch(`/api/invoices/${id}`).then(r=>r.json()).then(setInvoice);
   };
-
-  // Calculate Net Realized
-  const netRealized = ((settlementForm.receivedUSD - settlementForm.platformFee - settlementForm.transferFee) * settlementForm.exchangeRate) - settlementForm.taxDeducted;
 
   return (
     <div className="space-y-6">
@@ -265,63 +238,50 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
-          {(showSettlement || invoice.settlement) && (
-            <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-6">
-              <h3 className="text-lg font-medium border-b border-indigo-500/20 pb-4 mb-4 text-indigo-300">Settlement Intelligence</h3>
-              
-              {invoice.settlement ? (
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-neutral-400">Invoiced</span>
-                    <span>${invoice.settlement.invoicedUSD}</span>
+          <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
+            <h3 className="text-lg font-medium border-b border-neutral-800 pb-4 mb-4">Settlement Timeline</h3>
+            
+            {(!invoice.settlements || invoice.settlements.length === 0) && (
+              <p className="text-sm text-neutral-500 mb-4">No settlements recorded yet.</p>
+            )}
+            
+            {invoice.settlements && invoice.settlements.length > 0 && (
+              <div className="space-y-4 mb-6">
+                {invoice.settlements.map((settlement: any, i: number) => (
+                  <div key={settlement.id} className="text-sm border-b border-neutral-800 pb-3 last:border-0 last:pb-0">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-medium text-neutral-300">Settlement {i + 1}</span>
+                      <span className="text-xs text-neutral-500">{format(new Date(settlement.settledAt), 'MMM d, yyyy')}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-neutral-400">
+                      <div><span>₹{settlement.actualInrReceived?.toLocaleString('en-IN') || 0}</span></div>
+                      <div className="text-right"><span>{settlement.paymentMethod}</span></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-neutral-400">Net Realized</span>
-                    <span className="text-emerald-400 font-medium">₹{invoice.settlement.netRealized?.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-neutral-400">Settlement Gap</span>
-                    <span className="text-rose-400">
-                      ${(invoice.settlement.invoicedUSD - (invoice.settlement.netRealized / invoice.settlement.exchangeRate)).toFixed(2)}
+                ))}
+                
+                <div className="pt-3 border-t border-neutral-700">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-neutral-300">Total Received:</span>
+                    <span className="font-bold text-emerald-400">
+                      ₹{invoice.settlements.reduce((sum: number, s: any) => sum + (s.actualInrReceived || 0), 0).toLocaleString('en-IN')}
                     </span>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-neutral-400">Received USD</label>
-                      <input type="number" value={settlementForm.receivedUSD} onChange={e => setSettlementForm({...settlementForm, receivedUSD: parseFloat(e.target.value)||0})} className="w-full bg-neutral-900 border border-neutral-700 rounded p-2 text-sm mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-neutral-400">Exchange Rate</label>
-                      <input type="number" value={settlementForm.exchangeRate} onChange={e => setSettlementForm({...settlementForm, exchangeRate: parseFloat(e.target.value)||0})} className="w-full bg-neutral-900 border border-neutral-700 rounded p-2 text-sm mt-1" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-neutral-400">Platform Fee ($)</label>
-                      <input type="number" value={settlementForm.platformFee} onChange={e => setSettlementForm({...settlementForm, platformFee: parseFloat(e.target.value)||0})} className="w-full bg-neutral-900 border border-neutral-700 rounded p-2 text-sm mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-neutral-400">Tax Deducted (₹)</label>
-                      <input type="number" value={settlementForm.taxDeducted} onChange={e => setSettlementForm({...settlementForm, taxDeducted: parseFloat(e.target.value)||0})} className="w-full bg-neutral-900 border border-neutral-700 rounded p-2 text-sm mt-1" />
-                    </div>
-                  </div>
-                  
-                  <div className="border-t border-neutral-700 pt-3 mt-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-sm font-medium">Net Realized</span>
-                      <span className="text-lg font-bold text-emerald-400">₹{netRealized.toLocaleString()}</span>
-                    </div>
-                    <button onClick={saveSettlement} className="w-full flex justify-center items-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
-                      Record Settlement <ArrowRight className="w-4 h-4 ml-2" />
-                    </button>
+                  <div className="text-xs text-neutral-500 text-right mt-1">
+                    Expected: ₹{(invoice.total * (invoice.settlements[0]?.exchangeRate || 83.5)).toLocaleString('en-IN')}
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+            
+            {invoice.status !== 'CANCELLED' && (
+              <RecordSettlementModal invoice={invoice} onSaved={fetchInvoice}>
+                <button className="w-full flex justify-center items-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
+                  Record Settlement <ArrowRight className="w-4 h-4 ml-2" />
+                </button>
+              </RecordSettlementModal>
+            )}
+          </div>
 
           <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 flex-col overflow-hidden h-[600px] flex">
             <div className="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-950">

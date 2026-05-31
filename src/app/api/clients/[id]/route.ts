@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     include: { 
       invoices: {
         include: {
-          settlement: true
+          settlements: true
         },
         orderBy: {
           createdAt: 'desc'
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     .filter(i => i.status === 'SENT' || i.status === 'OVERDUE');
 
   const settlements = client.invoices
-    .map(i => i.settlement)
+    .flatMap(i => i.settlements)
     .filter(Boolean);
 
   return NextResponse.json({
