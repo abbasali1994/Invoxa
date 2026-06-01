@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logAction } from '@/lib/audit';
+import { enforcePermission } from '@/lib/permission-check';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -54,6 +55,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const denied = await enforcePermission('invoice.delete');
+    if (denied) return denied;
+
     const id = (await params).id;
     const inv = await prisma.invoice.findUnique({ where: { id } });
     if (!inv) return NextResponse.json({ error: 'Not found' }, { status: 404 });

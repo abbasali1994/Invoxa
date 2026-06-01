@@ -162,6 +162,7 @@ export default function InvoicesPage() {
                 <th className="px-5 py-3 font-medium">Invoice #</th>
                 <th className="px-5 py-3 font-medium">Client</th>
                 <th className="px-5 py-3 font-medium">Date</th>
+                <th className="px-5 py-3 font-medium">Created By</th>
                 <th className="px-5 py-3 font-medium text-right">Amount</th>
                 <th className="px-5 py-3 font-medium text-center">Status</th>
                 <th className="px-5 py-3 font-medium text-right">Action</th>
@@ -182,6 +183,20 @@ export default function InvoicesPage() {
                   </td>
                   <td className="px-5 py-4 text-neutral-300">{inv.client.name}</td>
                   <td className="px-5 py-4">{format(new Date(inv.createdAt), 'MMM d, yyyy')}</td>
+                  <td className="px-5 py-4">
+                    {inv.createdBy ? (
+                      <div className="flex items-center gap-2">
+                        {inv.createdBy.image && (
+                          <img src={inv.createdBy.image} alt="" className="w-5 h-5 rounded-full flex-shrink-0" />
+                        )}
+                        <span className="text-xs text-neutral-400 truncate max-w-[100px]" title={inv.createdBy.name ?? inv.createdBy.email}>
+                          {inv.createdBy.name ?? inv.createdBy.email}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-neutral-600">—</span>
+                    )}
+                  </td>
                   <td className="px-5 py-4 text-right font-medium text-neutral-200">${inv.total.toFixed(2)}</td>
                   <td className="px-5 py-4 text-center">
                     <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(inv.status)}`}>
@@ -232,7 +247,7 @@ export default function InvoicesPage() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-neutral-500 flex-col items-center flex">
+                  <td colSpan={8} className="px-5 py-12 text-center text-neutral-500">
                     <FileText className="w-8 h-8 text-neutral-700 mb-3" />
                     No invoices found.
                   </td>

@@ -2,23 +2,26 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logAction } from '@/lib/audit';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function POST(request: NextRequest) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const body = await request.json();
-    
-    // Duplicate Detection Logic
-    // Check for expenses within 7 days, same vendor, within 5% amount
+
     const dateObj = new Date(body.date);
     const sevenDaysAgo = new Date(dateObj.getTime() - 7 * 24 * 60 * 60 * 1000);
     const sevenDaysFuture = new Date(dateObj.getTime() + 7 * 24 * 60 * 60 * 1000);
-    
+
     const amountNum = parseFloat(body.amount);
     const lowerBound = amountNum * 0.95;
     const upperBound = amountNum * 1.05;
 
     const duplicates = await prisma.expense.findMany({
       where: {
+        workspaceId,
         vendor: { equals: body.vendor },
         date: { gte: sevenDaysAgo, lte: sevenDaysFuture },
         amount: { gte: lowerBound, lte: upperBound }
@@ -43,17 +46,18 @@ export async function POST(request: NextRequest) {
         notes: body.notes || undefined,
         lineItems: body.lineItems || [],
         aiCategorized: false,
+        workspaceId,
       }
     });
 
     await logAction('Expense', expense.id, 'CREATED', body);
 
-    // Auto-create Journal Entry
-    let expenseAccount = await prisma.financialAccount.findFirst({ where: { type: 'EXPENSE' } });
-    if (!expenseAccount) expenseAccount = await prisma.financialAccount.create({ data: { name: 'General Expenses', type: 'EXPENSE', currency: 'USD' } });
-    
-    let bankAccount = await prisma.financialAccount.findFirst({ where: { type: 'BANK' } });
-    if (!bankAccount) bankAccount = await prisma.financialAccount.create({ data: { name: 'Main Bank', type: 'BANK', currency: 'USD' } });
+    // Auto-create Journal Entry scoped to workspace
+    let expenseAccount = await prisma.financialAccount.findFirst({ where: { type: 'EXPENSE', workspaceId } });
+    if (!expenseAccount) expenseAccount = await prisma.financialAccount.create({ data: { name: 'General Expenses', type: 'EXPENSE', currency: 'USD', workspaceId } });
+
+    let bankAccount = await prisma.financialAccount.findFirst({ where: { type: 'BANK', workspaceId } });
+    if (!bankAccount) bankAccount = await prisma.financialAccount.create({ data: { name: 'Main Bank', type: 'BANK', currency: 'USD', workspaceId } });
 
     await prisma.journalEntry.create({
       data: {
@@ -69,7 +73,6 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // If duplicate found, return the warning in the response
     if (duplicates.length > 0) {
       return NextResponse.json({
         ...expense,
@@ -87,11 +90,14 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const url = new URL(request.url);
     const status = url.searchParams.get('status');
     const isRecurring = url.searchParams.get('isRecurring') === 'true';
 
-    let where: any = { deletedAt: null };
+    let where: any = { deletedAt: null, workspaceId };
 
     if (isRecurring) {
       where.isRecurring = true;

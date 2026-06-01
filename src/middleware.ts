@@ -1,25 +1,23 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { auth } from '@/auth'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login');
-  const isApiRoute = request.nextUrl.pathname.startsWith('/api');
-  
-  if (isApiRoute) return NextResponse.next();
+export default auth((req) => {
+  const isLoggedIn = !!req.auth
+  const { pathname } = req.nextUrl
+  const isLoginPage = pathname === '/login'
+  const isApiAuth = pathname.startsWith('/api/auth')
 
-  const token = request.cookies.get('invoxa_auth')?.value;
-
-  if (!token && !isAuthRoute) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  if (isApiAuth) return NextResponse.next()
+  if (!isLoggedIn && !isLoginPage) {
+    return NextResponse.redirect(new URL('/login', req.url))
   }
-
-  if (token && isAuthRoute) {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (isLoggedIn && isLoginPage) {
+    return NextResponse.redirect(new URL('/', req.url))
   }
-
-  return NextResponse.next();
-}
+  return NextResponse.next()
+})
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
-};
+}

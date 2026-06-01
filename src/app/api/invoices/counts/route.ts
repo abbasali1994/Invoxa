@@ -1,16 +1,19 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { InvoiceStatus } from '@prisma/client';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET(request: NextRequest) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const [allCount, sentCount, paidCount, overdueCount, draftCount] = await Promise.all([
-      prisma.invoice.count({ where: { deletedAt: null } }),
-      prisma.invoice.count({ where: { deletedAt: null, status: 'SENT' } }),
-      prisma.invoice.count({ where: { deletedAt: null, status: 'PAID' } }),
-      prisma.invoice.count({ where: { deletedAt: null, status: 'OVERDUE' } }),
-      prisma.invoice.count({ where: { deletedAt: null, status: 'DRAFT' } }),
+      prisma.invoice.count({ where: { deletedAt: null, workspaceId } }),
+      prisma.invoice.count({ where: { deletedAt: null, status: 'SENT', workspaceId } }),
+      prisma.invoice.count({ where: { deletedAt: null, status: 'PAID', workspaceId } }),
+      prisma.invoice.count({ where: { deletedAt: null, status: 'OVERDUE', workspaceId } }),
+      prisma.invoice.count({ where: { deletedAt: null, status: 'DRAFT', workspaceId } }),
     ]);
 
     return NextResponse.json({

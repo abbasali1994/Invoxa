@@ -2,9 +2,18 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import Decimal from 'decimal.js';
+import { enforcePermission } from '@/lib/permission-check';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function POST(req: NextRequest) {
   try {
+    // RBAC: Only ADMINs can record settlements
+    const denied = await enforcePermission('settlement.create');
+    if (denied) return denied;
+
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const body = await req.json();
     const {
       invoiceId,
@@ -68,6 +77,7 @@ export async function POST(req: NextRequest) {
           settlementGap: settlementGap.toNumber(),
           paymentMethod,
           receivingAccountId,
+          workspaceId,
         }
       });
 
@@ -142,7 +152,11 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const settlements = await prisma.settlementRecord.findMany({
+      where: { workspaceId },
       orderBy: { settledAt: 'desc' },
       include: {
         invoice: { include: { client: true } },

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { InvoiceStatus } from '@prisma/client';
+import { getCurrentWorkspaceId, getSession } from '@/lib/workspace';
 
 const createInvoiceSchema = z.object({
   clientId: z.string().min(1, 'Client ID is required'),
@@ -22,15 +23,26 @@ const createInvoiceSchema = z.object({
   dueDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
   notes: z.string().optional(),
   templateId: z.string().optional(),
+  senderName: z.string().optional(),
+  billToCompany: z.string().optional(),
+  paymentMethod: z.string().optional(),
+  bankName: z.string().optional(),
+  bankAccountName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifscCode: z.string().optional(),
+  swiftCode: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const statusParam = searchParams.get('status');
-    
-    let whereClause: any = { deletedAt: null };
-    
+
+    let whereClause: any = { deletedAt: null, workspaceId };
+
     if (statusParam && statusParam !== 'ALL' && statusParam !== 'active') {
       whereClause.status = statusParam.toUpperCase();
     } else if (statusParam === 'active') {
@@ -40,9 +52,8 @@ export async function GET(request: NextRequest) {
     const invoices = await prisma.invoice.findMany({
       where: whereClause,
       include: {
-        client: {
-          select: { name: true, email: true }
-        }
+        client: { select: { name: true, email: true } },
+        createdBy: { select: { name: true, email: true, image: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -55,22 +66,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
+    const session = await getSession();
     const body = await request.json();
     const validatedData = createInvoiceSchema.parse(body);
 
-    // Generate Invoice Number (simple logic for now)
-    const count = await prisma.invoice.count();
+    const count = await prisma.invoice.count({ where: { workspaceId } });
     const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 
     const invoice = await prisma.invoice.create({
       data: {
         ...validatedData,
         invoiceNumber,
-        lineItems: validatedData.lineItems, // Prisma stores JSON
+        workspaceId,
+        createdById: session?.user?.id,
+        lineItems: validatedData.lineItems,
       },
-      include: {
-        client: true
-      }
+      include: { client: true, createdBy: { select: { name: true, email: true, image: true } } }
     });
 
     return NextResponse.json(invoice, { status: 201 });
