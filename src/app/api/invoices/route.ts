@@ -72,6 +72,11 @@ export async function POST(request: NextRequest) {
     const session = await getSession();
     const body = await request.json();
     const validatedData = createInvoiceSchema.parse(body);
+    const client = await prisma.client.findFirst({
+      where: { id: validatedData.clientId, workspaceId },
+      select: { id: true },
+    });
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
 
     const count = await prisma.invoice.count({ where: { workspaceId } });
     const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;

@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET() {
   try {
-    const all = await prisma.expense.count({ where: { deletedAt: null } });
-    const saved = await prisma.expense.count({ where: { status: 'SAVED', deletedAt: null } });
-    const draft = await prisma.expense.count({ where: { status: 'DRAFT', deletedAt: null } });
-    const recurring = await prisma.expense.count({ where: { isRecurring: true, deletedAt: null } });
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
+    const all = await prisma.expense.count({ where: { workspaceId, deletedAt: null } });
+    const saved = await prisma.expense.count({ where: { workspaceId, status: 'SAVED', deletedAt: null } });
+    const draft = await prisma.expense.count({ where: { workspaceId, status: 'DRAFT', deletedAt: null } });
+    const recurring = await prisma.expense.count({ where: { workspaceId, isRecurring: true, deletedAt: null } });
 
     // For overdue, let's find recurring expenses whose date is older than 30 days.
     // In a real app, this would use the nextRunAt logic from recurring workflows, 
@@ -23,6 +25,7 @@ export async function GET() {
       where: { 
         isRecurring: true, 
         date: { lt: thirtyDaysAgo }, 
+        workspaceId,
         deletedAt: null 
       } 
     });

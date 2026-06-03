@@ -27,15 +27,15 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // Validation
-    const invoice = await prisma.invoice.findUnique({ 
-      where: { id: invoiceId },
+    const invoice = await prisma.invoice.findFirst({ 
+      where: { id: invoiceId, workspaceId },
       include: { client: true, settlements: true }
     });
     if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     if (invoice.status === 'CANCELLED') return NextResponse.json({ error: 'Cannot settle cancelled invoice' }, { status: 400 });
     if (!actualInrReceived || actualInrReceived <= 0) return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
 
-    const account = await prisma.financialAccount.findUnique({ where: { id: receivingAccountId } });
+    const account = await prisma.financialAccount.findFirst({ where: { id: receivingAccountId, workspaceId } });
     if (!account) return NextResponse.json({ error: 'Account not found' }, { status: 404 });
 
     // Calculate settlement fields using decimal.js
@@ -92,11 +92,11 @@ export async function POST(req: NextRequest) {
 
       // 3. Find or create double-entry accounts
       let receivableAccount = await tx.financialAccount.findFirst({
-        where: { type: 'EXPENSE', name: { contains: 'Receivable' } }
+        where: { type: 'EXPENSE', name: { contains: 'Receivable' }, workspaceId }
       });
       if (!receivableAccount) {
         receivableAccount = await tx.financialAccount.create({
-          data: { name: 'Accounts Receivable', type: 'EXPENSE', currency: 'USD', balance: 0 }
+          data: { name: 'Accounts Receivable', type: 'EXPENSE', currency: 'USD', balance: 0, workspaceId }
         });
       }
 

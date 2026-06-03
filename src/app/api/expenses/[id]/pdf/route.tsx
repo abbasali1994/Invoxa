@@ -4,12 +4,16 @@ import { prisma } from '@/lib/prisma';
 import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { ExpensePDFDocument } from '@/components/ExpensePDFDocument';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return new NextResponse('No active workspace', { status: 401 });
+
     const id = (await params).id;
-    const expense = await prisma.expense.findUnique({
-      where: { id },
+    const expense = await prisma.expense.findFirst({
+      where: { id, workspaceId },
       include: {
         account: true,
         project: true

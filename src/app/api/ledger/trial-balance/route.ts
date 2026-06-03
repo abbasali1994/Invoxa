@@ -1,8 +1,19 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 export async function GET() {
-  const entries = await prisma.journalEntry.findMany();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
+  const entries = await prisma.journalEntry.findMany({
+    where: {
+      OR: [
+        { debitAccount: { workspaceId } },
+        { creditAccount: { workspaceId } },
+      ],
+    },
+  });
   const balances: Record<string, { debits: number, credits: number }> = {};
   entries.forEach(e => {
     if(!balances[e.debitAccountId]) balances[e.debitAccountId] = { debits: 0, credits: 0 };

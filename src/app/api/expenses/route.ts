@@ -10,6 +10,21 @@ export async function POST(request: NextRequest) {
     if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
 
     const body = await request.json();
+    if (body.accountId) {
+      const account = await prisma.financialAccount.findFirst({
+        where: { id: body.accountId, workspaceId },
+        select: { id: true },
+      });
+      if (!account) return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
+    if (body.projectId) {
+      const project = await prisma.project.findFirst({
+        where: { id: body.projectId, workspaceId },
+        select: { id: true },
+      });
+      if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
 
     const dateObj = new Date(body.date);
     const sevenDaysAgo = new Date(dateObj.getTime() - 7 * 24 * 60 * 60 * 1000);

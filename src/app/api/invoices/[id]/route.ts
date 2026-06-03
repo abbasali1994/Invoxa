@@ -3,11 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logAction } from '@/lib/audit';
 import { enforcePermission } from '@/lib/permission-check';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const invoice = await prisma.invoice.findFirst({
-      where: { id: (await params).id, deletedAt: null },
+      where: { id: (await params).id, workspaceId, deletedAt: null },
       include: { client: true, settlements: { orderBy: { settledAt: 'asc' } } }
     });
     if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -19,17 +23,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const body = await request.json();
+    const id = (await params).id;
+    const existingInvoice = await prisma.invoice.findFirst({ where: { id, workspaceId, deletedAt: null } });
+    if (!existingInvoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
     const invoice = await prisma.invoice.update({
-      where: { id: (await params).id },
+      where: { id },
       data: body
     });
 
     if (body.status === 'PAID') {
-      let arAccount = await prisma.financialAccount.findFirst({ where: { name: 'Accounts Receivable' } });
-      if (!arAccount) arAccount = await prisma.financialAccount.create({ data: { name: 'Accounts Receivable', type: 'BANK', currency: 'USD' } });
-      let revenueAccount = await prisma.financialAccount.findFirst({ where: { name: 'Sales Revenue' } });
-      if (!revenueAccount) revenueAccount = await prisma.financialAccount.create({ data: { name: 'Sales Revenue', type: 'BANK', currency: 'USD' } });
+      let arAccount = await prisma.financialAccount.findFirst({ where: { name: 'Accounts Receivable', workspaceId } });
+      if (!arAccount) arAccount = await prisma.financialAccount.create({ data: { name: 'Accounts Receivable', type: 'BANK', currency: 'USD', workspaceId } });
+      let revenueAccount = await prisma.financialAccount.findFirst({ where: { name: 'Sales Revenue', workspaceId } });
+      if (!revenueAccount) revenueAccount = await prisma.financialAccount.create({ data: { name: 'Sales Revenue', type: 'BANK', currency: 'USD', workspaceId } });
       
       await prisma.journalEntry.create({
         data: {
@@ -58,8 +69,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const denied = await enforcePermission('invoice.delete');
     if (denied) return denied;
 
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const id = (await params).id;
-    const inv = await prisma.invoice.findUnique({ where: { id } });
+    const inv = await prisma.invoice.findFirst({ where: { id, workspaceId } });
     if (!inv) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     if (inv.status === 'DRAFT') {
