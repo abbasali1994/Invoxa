@@ -1,13 +1,18 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET() {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     // 1. Expense Breakdown
     const expenses = await prisma.expense.groupBy({
       by: ['category'],
-      _sum: { amount: true }
+      _sum: { amount: true },
+      where: { workspaceId, deletedAt: null }
     });
     const expenseData = expenses.map(e => ({
       category: e.category,
@@ -21,11 +26,11 @@ export async function GET() {
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const invoices = await prisma.invoice.findMany({
-      where: { createdAt: { gte: sixMonthsAgo } },
+      where: { workspaceId, createdAt: { gte: sixMonthsAgo }, deletedAt: null },
       select: { createdAt: true, total: true }
     });
     const settlements = await prisma.settlementRecord.findMany({
-      where: { settledAt: { gte: sixMonthsAgo } },
+      where: { workspaceId, settledAt: { gte: sixMonthsAgo } },
       select: { settledAt: true, netRealized: true, invoicedUSD: true }
     });
 
@@ -58,12 +63,8 @@ export async function GET() {
       realized: data.realized, // Usually netRealized is INR, so we might keep it separate or convert.
     }));
 
-    // 3. Cashflow Forecast (Simplified)
-    const forecastData = [
-      { name: 'Month + 1', projected: 25000, expenses: 12000 },
-      { name: 'Month + 2', projected: 30000, expenses: 12500 },
-      { name: 'Month + 3', projected: 28000, expenses: 11000 },
-    ];
+    // 3. Cashflow Forecast
+    const forecastData: { name: string, projected: number, expenses: number }[] = [];
 
     return NextResponse.json({
       revenueData,

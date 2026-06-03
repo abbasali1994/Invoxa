@@ -1,9 +1,13 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET(request: NextRequest) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
 
@@ -13,11 +17,13 @@ export async function GET(request: NextRequest) {
 
     const [clients, invoices, expenses, projects] = await Promise.all([
       prisma.client.findMany({
-        where: { name: { contains: query } },
+        where: { workspaceId, name: { contains: query } },
         take: 5
       }),
       prisma.invoice.findMany({
         where: {
+          workspaceId,
+          deletedAt: null,
           OR: [
             { invoiceNumber: { contains: query } },
             { client: { name: { contains: query } } }
@@ -27,11 +33,11 @@ export async function GET(request: NextRequest) {
         take: 5
       }),
       prisma.expense.findMany({
-        where: { vendor: { contains: query } },
+        where: { workspaceId, deletedAt: null, vendor: { contains: query } },
         take: 5
       }),
       prisma.project.findMany({
-        where: { name: { contains: query } },
+        where: { workspaceId, name: { contains: query } },
         take: 5
       })
     ]);

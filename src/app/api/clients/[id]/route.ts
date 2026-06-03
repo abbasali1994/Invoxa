@@ -1,12 +1,16 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
   const id = (await params).id;
   
-  const client = await prisma.client.findUnique({ 
-    where: { id },
+  const client = await prisma.client.findFirst({ 
+    where: { id, workspaceId },
     include: { 
       invoices: {
         include: {
@@ -65,7 +69,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
+  const id = (await params).id;
   const body = await req.json();
-  const client = await prisma.client.update({ where: { id: (await params).id }, data: body });
+  const existingClient = await prisma.client.findFirst({ where: { id, workspaceId } });
+  if (!existingClient) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+
+  const client = await prisma.client.update({ where: { id }, data: body });
   return NextResponse.json(client);
 }

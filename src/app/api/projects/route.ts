@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { ProjectStatus } from '@prisma/client';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 const createProjectSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -16,11 +17,14 @@ const createProjectSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
 
     const projects = await prisma.project.findMany({
-      where: clientId ? { clientId } : undefined,
+      where: clientId ? { workspaceId, clientId } : { workspaceId },
       include: {
         client: {
           select: { name: true }
@@ -37,11 +41,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const body = await request.json();
     const validatedData = createProjectSchema.parse(body);
+    const client = await prisma.client.findFirst({
+      where: { id: validatedData.clientId, workspaceId },
+      select: { id: true },
+    });
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
 
     const project = await prisma.project.create({
-      data: validatedData,
+      data: { ...validatedData, workspaceId },
     });
 
     return NextResponse.json(project, { status: 201 });

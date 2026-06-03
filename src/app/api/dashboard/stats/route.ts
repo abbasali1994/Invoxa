@@ -1,9 +1,13 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET() {
   try {
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
+
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -11,6 +15,7 @@ export async function GET() {
     const invoicedCurrentMonth = await prisma.invoice.aggregate({
       _sum: { total: true },
       where: {
+        workspaceId,
         createdAt: { gte: firstDayOfMonth },
         currency: 'USD'
       }
@@ -18,25 +23,26 @@ export async function GET() {
 
     // Realized INR & Settlement Gap
     const realizedData = await prisma.settlementRecord.aggregate({
-      _sum: { actualInrReceived: true, settlementGap: true }
+      _sum: { actualInrReceived: true, settlementGap: true },
+      where: { workspaceId }
     });
 
     // Pending settlements
     const pendingSettlements = await prisma.invoice.aggregate({
       _sum: { total: true },
       _count: { id: true },
-      where: { status: { in: ['SENT', 'OVERDUE'] } }
+      where: { workspaceId, status: { in: ['SENT', 'OVERDUE'] } }
     });
 
     // Outstanding receivables
     const outstandingReceivables = await prisma.invoice.aggregate({
       _sum: { total: true },
-      where: { status: { in: ['SENT', 'OVERDUE'] }, currency: 'USD' }
+      where: { workspaceId, status: { in: ['SENT', 'OVERDUE'] }, currency: 'USD' }
     });
 
     return NextResponse.json({
       invoicedCurrentMonthUSD: invoicedCurrentMonth._sum.total || 0,
-      totalInvoicedUSD: await prisma.invoice.aggregate({ _sum: { total: true } }).then(res => res._sum.total || 0),
+      totalInvoicedUSD: await prisma.invoice.aggregate({ _sum: { total: true }, where: { workspaceId } }).then(res => res._sum.total || 0),
       realizedINR: realizedData._sum.actualInrReceived || 0,
       totalSettlementGap: realizedData._sum.settlementGap || 0,
       pendingSettlementsCount: pendingSettlements._count.id || 0,
