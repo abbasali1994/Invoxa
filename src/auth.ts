@@ -2,6 +2,7 @@ import NextAuth from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
 import { authConfig } from './auth.config'
+import { cookies } from 'next/headers'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -21,6 +22,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!userId) return session
 
         session.user.id = userId
+        let activeWorkspaceId: string | null = null
+        try {
+          activeWorkspaceId = cookies().get('active_workspace_id')?.value ?? null
+        } catch {}
 
         const memberships = await prisma.workspaceMember.findMany({
           where: { userId },
@@ -48,8 +53,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: m.workspace.name,
             role: m.role as 'ADMIN' | 'EDITOR',
           }))
-          session.user.currentWorkspaceId = memberships[0].workspaceId
-          session.user.currentRole = memberships[0].role as 'ADMIN' | 'EDITOR'
+          const selectedMembership = activeWorkspaceId
+            ? memberships.find((m) => m.workspaceId === activeWorkspaceId)
+            : null
+          const resolvedMembership = selectedMembership ?? memberships[0]
+          session.user.currentWorkspaceId = resolvedMembership.workspaceId
+          session.user.currentRole = resolvedMembership.role as 'ADMIN' | 'EDITOR'
         }
       } catch (error) {
         console.error('Session callback error:', error)

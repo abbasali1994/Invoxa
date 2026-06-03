@@ -25,9 +25,17 @@ export async function POST(req: Request) {
   }
 
   // Return the new workspace info — client stores in localStorage
-  return NextResponse.json({
+  const response = NextResponse.json({
     workspaceId: membership.workspaceId,
     workspaceName: membership.workspace.name,
     role: membership.role,
   })
+  response.cookies.set('active_workspace_id', membership.workspaceId, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365,
+  })
+  return response
 }

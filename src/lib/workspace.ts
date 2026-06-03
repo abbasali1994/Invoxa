@@ -1,5 +1,9 @@
 import { auth } from '@/auth'
 
+export async function getSession() {
+  return auth()
+}
+
 export async function getCurrentWorkspaceId(): Promise<string | null> {
   const session = await auth()
   if (!session?.user?.currentWorkspaceId) return null
