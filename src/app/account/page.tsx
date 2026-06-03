@@ -31,10 +31,10 @@ export default function AccountPage() {
     finally { setLoading(false) }
   }
 
-  const openManage = async (ws: any) => {
-    setSelectedWorkspace(ws)
+  const openManage = async (workspace: any) => {
+    setSelectedWorkspace(workspace)
     try {
-      const res = await fetch(`/api/workspace/${ws.id}/members`)
+      const res = await fetch(`/api/workspace/${workspace.id}/members`)
       const data = await res.json()
       setMembers(Array.isArray(data) ? data : [])
     } catch { toast.error('Failed to load members') }
@@ -151,11 +151,10 @@ export default function AccountPage() {
                     </div>
                   </td>
                   <td className="py-3">
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      ws.role === 'ADMIN'
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${ws.role === 'ADMIN'
                         ? 'bg-indigo-500/10 text-indigo-400'
                         : 'bg-amber-500/10 text-amber-400'
-                    }`}>
+                      }`}>
                       {ws.role === 'ADMIN' && <Crown className="w-3 h-3 inline mr-1" />}
                       {ws.role}
                     </span>
@@ -238,9 +237,8 @@ export default function AccountPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                    m.role === 'ADMIN' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-400'
-                  }`}>{m.role}</span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${m.role === 'ADMIN' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-400'
+                    }`}>{m.role}</span>
                   {selectedWorkspace.role === 'ADMIN' && m.userId !== session?.user?.id && (
                     <button onClick={() => handleRemoveMember(m.userId)} className="text-neutral-600 hover:text-rose-400 transition-colors">
                       <Trash2 className="w-4 h-4" />
