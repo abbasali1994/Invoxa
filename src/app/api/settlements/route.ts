@@ -35,8 +35,11 @@ export async function POST(req: NextRequest) {
     if (invoice.status === 'CANCELLED') return NextResponse.json({ error: 'Cannot settle cancelled invoice' }, { status: 400 });
     if (!actualInrReceived || actualInrReceived <= 0) return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
 
-    const account = await prisma.financialAccount.findFirst({ where: { id: receivingAccountId, workspaceId } });
-    if (!account) return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    let account = null;
+    if (receivingAccountId) {
+      account = await prisma.financialAccount.findFirst({ where: { id: receivingAccountId, workspaceId } });
+      if (!account) return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
 
     // Calculate settlement fields using decimal.js
     const invoiceUSD = new Decimal(invoice.total);
@@ -76,7 +79,7 @@ export async function POST(req: NextRequest) {
           actualInrReceived: actualINR.toNumber(),
           settlementGap: settlementGap.toNumber(),
           paymentMethod,
-          receivingAccountId,
+          receivingAccountId: receivingAccountId || null,
           workspaceId,
         }
       });
@@ -100,27 +103,29 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // 4. Create journal entry (Debit receiving account, Credit accounts receivable)
-      await tx.journalEntry.create({
-        data: {
-          date: new Date(settlementDate),
-          description: `Settlement for Invoice ${invoice.invoiceNumber} - ${invoice.client.name}`,
-          debitAccountId: receivingAccountId,
-          creditAccountId: receivableAccount.id,
-          amount: netRealized.toNumber(),
-          currency: 'INR',
-          referenceType: 'settlement',
-          referenceId: settlement.id,
-        }
-      });
+      if (receivingAccountId) {
+        // 4. Create journal entry (Debit receiving account, Credit accounts receivable)
+        await tx.journalEntry.create({
+          data: {
+            date: new Date(settlementDate),
+            description: `Settlement for Invoice ${invoice.invoiceNumber} - ${invoice.client.name}`,
+            debitAccountId: receivingAccountId,
+            creditAccountId: receivableAccount.id,
+            amount: netRealized.toNumber(),
+            currency: 'INR',
+            referenceType: 'settlement',
+            referenceId: settlement.id,
+          }
+        });
 
-      // 5. Update receiving account balance
-      await tx.financialAccount.update({
-        where: { id: receivingAccountId },
-        data: { 
-          balance: { increment: netRealized.toNumber() }
-        }
-      });
+        // 5. Update receiving account balance
+        await tx.financialAccount.update({
+          where: { id: receivingAccountId },
+          data: { 
+            balance: { increment: netRealized.toNumber() }
+          }
+        });
+      }
 
       // 6. Create audit log
       await tx.auditLog.create({
@@ -134,7 +139,7 @@ export async function POST(req: NextRequest) {
             exchangeRate: rate.toNumber(),
             settlementGap: settlementGap.toNumber(),
             paymentMethod,
-            receivingAccount: account.name,
+            receivingAccount: account ? account.name : null,
             status: settlementStatus
           }
         }

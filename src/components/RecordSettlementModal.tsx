@@ -11,7 +11,7 @@ export function RecordSettlementModal({ invoice, onSaved, children }: { invoice:
     defaultValues: {
       actualInrReceived: "",
       exchangeRate: 83.5,
-      paymentMethod: "WISE",
+      paymentMethod: (invoice.paymentMethod?.toUpperCase().replace(' ', '_')) || "WISE",
       receivingAccountId: "",
       settlementDate: new Date().toISOString().split('T')[0],
       deductions: "",
@@ -80,7 +80,7 @@ export function RecordSettlementModal({ invoice, onSaved, children }: { invoice:
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Record Settlement</DialogTitle>
         </DialogHeader>
@@ -146,6 +146,7 @@ export function RecordSettlementModal({ invoice, onSaved, children }: { invoice:
             <div>
               <label className="block font-medium mb-1">Receiving Account</label>
               <select {...register("receivingAccountId")} className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500">
+                <option value="">None (Skip Ledger)</option>
                 {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </div>

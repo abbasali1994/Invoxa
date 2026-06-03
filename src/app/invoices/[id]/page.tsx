@@ -20,8 +20,8 @@ const PDFViewer = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PD
   loading: () => <div className="flex h-full items-center justify-center text-neutral-500"><Loader2 className="w-6 h-6 animate-spin mr-2"/> Loading PDF engine...</div>
 });
 
-export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const router = useRouter();
   const [invoice, setInvoice] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
