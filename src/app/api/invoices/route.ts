@@ -10,9 +10,10 @@ const createInvoiceSchema = z.object({
   lineItems: z.array(
     z.object({
       description: z.string(),
-      quantity: z.number(),
-      rate: z.number(),
-      amount: z.number()
+      hours: z.number().optional(),
+      cost: z.number().optional(),
+      amount: z.number().optional(),
+      isSection: z.boolean().optional()
     })
   ),
   subtotal: z.number(),

@@ -17,14 +17,14 @@ const PDFViewer = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PD
 });
 
 const invoiceSchema = z.object({
-  clientId: z.string().min(1, "Client is required"),
+  clientId: z.string().optional(),
+  clientName: z.string().min(1, "Client is required"),
   currency: z.string().default("USD"),
   paymentTerms: z.string().optional(),
   senderName: z.string().default("Abbas Ali Lokhandwala"),
   date: z.string(),
   invoiceNumber: z.string(),
   dueDate: z.string().optional(),
-  billToCompany: z.string().optional(),
   paymentMethod: z.string().optional(),
   bankAccountName: z.string().optional(),
   bankName: z.string().optional(),
@@ -50,12 +50,14 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
 
   const [isSaving, setIsSaving] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const { register, control, handleSubmit, watch, setValue, getValues, formState: { errors } } = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema as any),
     defaultValues: initialData || {
       clientId: initialClientId,
+      clientName: "",
       currency: "USD",
       senderName: "Abbas Ali Lokhandwala",
       date: new Date().toISOString().split('T')[0],
@@ -71,10 +73,19 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
 
   const watchLineItems = watch("lineItems");
   const watchClientId = watch("clientId");
+  const watchClientName = watch("clientName") || "";
+  const normalizedClientName = watchClientName.trim().toLowerCase();
+  const exactClientMatches = clients.filter(c => c.name?.trim().toLowerCase() === normalizedClientName);
+  const filteredClients = normalizedClientName
+    ? (exactClientMatches.length > 0
+        ? exactClientMatches
+        : clients.filter(c => c.name?.toLowerCase().includes(normalizedClientName)))
+    : clients;
   
   useEffect(() => {
     const client = clients.find(c => c.id === watchClientId);
     if (client) {
+      setValue("clientName", client.name);
       if (client.paymentMethod) setValue("paymentMethod", client.paymentMethod);
       if (client.bankAccountName) setValue("bankAccountName", client.bankAccountName);
       if (client.bankName) setValue("bankName", client.bankName);
@@ -105,6 +116,12 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
   }, [initialClientId, setValue]);
 
   useEffect(() => {
+    if (!initialData?.clientId || !clients.length) return;
+    const client = clients.find(c => c.id === initialData.clientId);
+    if (client) setValue("clientName", client.name);
+  }, [initialData?.clientId, clients, setValue]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       const data = getValues();
       if (data.clientId) {
@@ -118,8 +135,31 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
   const onSubmit = async (data: InvoiceFormValues, status: 'SENT' | 'DRAFT' = 'SENT') => {
     setIsSaving(true);
     try {
+      let clientId = data.clientId;
+      const typedClientName = data.clientName.trim();
+      const matchedClient = clients.find(c => c.name?.trim().toLowerCase() === typedClientName.toLowerCase());
+
+      if (!clientId && matchedClient) {
+        clientId = matchedClient.id;
+      }
+
+      if (!clientId) {
+        const clientRes = await fetch('/api/clients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: typedClientName, currency: data.currency || 'USD' })
+        });
+
+        if (!clientRes.ok) throw new Error("Failed to create client");
+        const createdClient = await clientRes.json();
+        clientId = createdClient.id;
+      }
+
+      const { clientName, ...invoiceData } = data;
       const payload = {
-        ...data,
+        ...invoiceData,
+        clientId,
+        billToCompany: typedClientName,
         subtotal,
         total: subtotal,
         status,
@@ -140,9 +180,11 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
       if (status === 'DRAFT') {
         toast.success(isEdit ? "Draft updated" : "Draft saved");
         router.push('/invoices');
+        router.refresh();
       } else {
         toast.success(isEdit ? "Invoice updated" : "Invoice created successfully");
-        router.push(`/invoices/${saved.id}`);
+        router.push('/invoices');
+        router.refresh();
       }
     } catch (error) {
       toast.error("Failed to save invoice");
@@ -205,20 +247,48 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div>
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-1">Bill To (Client)</label>
-                <select {...register("clientId")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
-                  <option value="">Select a client...</option>
-                  {clients.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-                {errors.clientId && <p className="text-rose-500 text-xs mt-1">{errors.clientId.message}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">Company Name</label>
-                <input type="text" {...register("billToCompany")} placeholder="Client Company" className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
+                <input type="hidden" {...register("clientId")} />
+                <div className="relative">
+                  <input
+                    type="text"
+                    {...register("clientName")}
+                    placeholder="Client name"
+                    autoComplete="off"
+                    onFocus={() => setIsClientDropdownOpen(true)}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setValue("clientName", value, { shouldValidate: true, shouldDirty: true });
+                      const matchedClient = clients.find(c => c.name?.trim().toLowerCase() === value.trim().toLowerCase());
+                      setValue("clientId", matchedClient?.id || "");
+                      setIsClientDropdownOpen(true);
+                    }}
+                    onBlur={() => window.setTimeout(() => setIsClientDropdownOpen(false), 120)}
+                    className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
+                  />
+                  {isClientDropdownOpen && clients.length > 0 && filteredClients.length > 0 && (
+                    <div className="absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-md border border-neutral-800 bg-neutral-950 shadow-xl">
+                      {filteredClients.map(c => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
+                            setValue("clientId", c.id, { shouldValidate: true, shouldDirty: true });
+                            setValue("clientName", c.name, { shouldValidate: true, shouldDirty: true });
+                            setIsClientDropdownOpen(false);
+                          }}
+                          className="block w-full px-3 py-2 text-left text-sm text-neutral-200 hover:bg-neutral-800"
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {errors.clientName && <p className="text-rose-500 text-xs mt-1">{errors.clientName.message}</p>}
               </div>
             </div>
           </div>
@@ -374,8 +444,8 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
           <div className="flex-1 w-full h-full bg-neutral-900">
             <PDFViewer width="100%" height="100%" className="border-0">
               <InvoicePDFDocument 
-                data={watch()} 
-                clientName={clients.find(c => c.id === watchClientId)?.name || ''} 
+                data={{ ...watch(), billToCompany: watchClientName }} 
+                clientName={watchClientName || clients.find(c => c.id === watchClientId)?.name || ''} 
               />
             </PDFViewer>
           </div>

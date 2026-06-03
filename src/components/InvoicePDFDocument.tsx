@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
 
 export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName: string }) => {
   const lineItems = Array.isArray(data.lineItems) ? data.lineItems : [];
+  const resolvedClientName = data.billToCompany || data.clientName || clientName || '[client company name]';
   const totalHours = lineItems.reduce((sum: number, item: any) => sum + (item.isSection ? 0 : (item.hours || 0)), 0);
   const totalAmount = lineItems.reduce((sum: number, item: any) => {
     if (item.isSection) return sum;
@@ -70,7 +71,7 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
 
         <View style={styles.billToContainer}>
           <Text style={styles.billToTitle}>BILL TO</Text>
-          <Text>Company: {data.billToCompany || clientName || '[client company name]'}</Text>
+          <Text>Company: {resolvedClientName}</Text>
         </View>
 
         <View style={styles.table}>
