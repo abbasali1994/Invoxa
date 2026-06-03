@@ -1,20 +1,29 @@
 import { auth } from '@/auth'
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth
   const { pathname } = req.nextUrl
-  const isLoginPage = pathname === '/login'
-  const isApiAuth = pathname.startsWith('/api/auth')
 
-  if (isApiAuth) return NextResponse.next()
+  // Always allow these paths
+  if (
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/_next') ||
+    pathname === '/favicon.ico'
+  ) {
+    return NextResponse.next()
+  }
+
+  const isLoginPage = pathname === '/login'
+
   if (!isLoggedIn && !isLoginPage) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
+
   if (isLoggedIn && isLoginPage) {
     return NextResponse.redirect(new URL('/', req.url))
   }
+
   return NextResponse.next()
 })
 

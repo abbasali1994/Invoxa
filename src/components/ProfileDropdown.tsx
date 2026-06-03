@@ -22,22 +22,20 @@ export function ProfileDropdown() {
   const currentWorkspace = user.workspaces?.find((w) => w.id === user.currentWorkspaceId)
 
   const switchWorkspace = async (workspaceId: string) => {
-    if (workspaceId === user.currentWorkspaceId) return
-    setSwitching(true)
-    try {
-      const res = await fetch('/api/workspace/switch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workspaceId }),
-      })
-      if (!res.ok) throw new Error('Failed')
-      await update() // re-fetch session
-      toast.success('Workspace switched')
-      router.refresh()
-    } catch {
-      toast.error('Failed to switch workspace')
-    } finally {
-      setSwitching(false)
+    const res = await fetch('/api/workspace/switch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workspaceId }),
+    })
+    
+    if (res.ok) {
+      const data = await res.json()
+      // Store in localStorage
+      localStorage.setItem('activeWorkspaceId', data.workspaceId)
+      localStorage.setItem('activeWorkspaceName', data.workspaceName)
+      localStorage.setItem('activeWorkspaceRole', data.role)
+      // Reload to refresh all data
+      window.location.href = '/'
     }
   }
 
