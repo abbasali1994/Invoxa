@@ -1,0 +1,30 @@
+import { StyleSheet } from '@react-pdf/renderer';
+
+export const expenseStyles = StyleSheet.create({
+  page: { padding: 40, fontFamily: 'Helvetica', fontSize: 10, color: '#333' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 },
+  title: { fontSize: 20, fontWeight: 'bold' },
+  companyName: { fontSize: 14, fontWeight: 'bold' },
+  companyAddress: { color: '#666' },
+  detailsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+  label: { fontWeight: 'bold', width: 60 },
+  value: { flex: 1 },
+  detailsLeft: { flex: 1 },
+  detailsRight: { flex: 1, textAlign: 'right' },
+  sectionTitle: { fontSize: 10, fontWeight: 'bold', borderBottom: '1pt solid #000', paddingBottom: 4, marginBottom: 10, marginTop: 20 },
+  tableHeader: { flexDirection: 'row', borderBottom: '1pt solid #000', paddingBottom: 4, marginBottom: 4 },
+  tableRow: { flexDirection: 'row', borderBottom: '1pt solid #eee', paddingVertical: 4 },
+  colDesc: { flex: 4 },
+  colQty: { flex: 1, textAlign: 'center' },
+  colRate: { flex: 1, textAlign: 'center' },
+  colAmt: { flex: 1, textAlign: 'right' },
+  tableRowSection: { flexDirection: 'row', borderBottom: '1pt solid #eee', paddingVertical: 4, backgroundColor: '#f9f9f9' },
+  sectionText: { fontWeight: 'bold', color: '#111' },
+  totals: { marginTop: 10, alignSelf: 'flex-end', width: 200 },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 },
+  totalRowBold: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderTop: '1pt solid #000', marginTop: 4, fontWeight: 'bold' },
+  paymentSection: { marginTop: 30, borderTop: '1pt solid #000', paddingTop: 10 },
+  paymentRow: { flexDirection: 'row', marginBottom: 4 },
+  paymentLabel: { fontWeight: 'bold', width: 100 },
+  paymentValue: { flex: 1 }
+});

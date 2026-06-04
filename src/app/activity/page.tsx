@@ -46,7 +46,7 @@ export default function ActivityPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm font-medium text-neutral-200">
-                      {log.action} <span className="text-neutral-500 font-normal">on {log.entityType} ({log.entityId.slice(0,8)}...)</span>
+                      {log.action} <span className="text-neutral-500 font-normal">on {log.entityType} ({log.entityId.slice(0, 8)}...)</span>
                     </p>
                     <p className="text-xs text-neutral-500 mt-1">{formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}</p>
                   </div>
