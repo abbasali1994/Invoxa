@@ -49,15 +49,15 @@ export default function InvoicesPage() {
     }
   };
 
-  const deleteDraft = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this draft?')) return;
+  const deleteInvoice = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this invoice?')) return;
     try {
       await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
-      toast.success('Draft deleted');
+      toast.success('Invoice deleted');
       fetchInvoices(activeTab);
       fetchCounts();
     } catch {
-      toast.error('Failed to delete draft');
+      toast.error('Failed to delete invoice');
     }
   };
 
@@ -77,9 +77,8 @@ export default function InvoicesPage() {
           <InvoiceFilters search={search} setSearch={setSearch} />
           <InvoiceTabBar counts={counts} activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
-        <InvoiceTable invoices={filtered} toggleStar={toggleStar} deleteDraft={deleteDraft} />
+        <InvoiceTable invoices={filtered} toggleStar={toggleStar} deleteInvoice={deleteInvoice} />
       </div>
     </div>
   );
 }
-

@@ -1,14 +1,15 @@
 "use client";
 
-import { use } from "react";
+import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { useProjectDetail } from "@/hooks/useProjectDetail";
 import { ProjectPLPanel } from "@/components/projects/ProjectPLPanel";
 import { ProjectMilestones } from "@/components/projects/ProjectMilestones";
 
-export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ProjectDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const { project, profitabilityScore, router } = useProjectDetail(id);
 
   if (!project) {
@@ -34,4 +35,3 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     </div>
   );
 }
-

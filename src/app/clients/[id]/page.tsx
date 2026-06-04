@@ -1,6 +1,5 @@
 "use client";
-import { use } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Loader2, ChevronRight } from "lucide-react";
 import { useClientDetail } from "@/hooks/useClientDetail";
 import { ClientDetailHeader } from "@/components/clients/ClientDetailHeader";
@@ -11,8 +10,9 @@ import { ClientTransactionsTab } from "@/components/clients/ClientTransactionsTa
 import { ClientUpcomingTab } from "@/components/clients/ClientUpcomingTab";
 import { ClientEditDrawer } from "@/components/clients/ClientEditDrawer";
 
-export default function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ClientDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const router = useRouter();
   const { client, activeTab, setActiveTab, isEditOpen, setIsEditOpen, formData, setFormData, handleSaveEdit } = useClientDetail(id);
 
@@ -50,4 +50,3 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     </div>
   );
 }
-

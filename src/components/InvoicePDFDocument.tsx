@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View } from '@react-pdf/renderer';
 import { invoiceStyles as styles } from './InvoicePDFStyles';
+import { formatDateDDMMYYYY } from '@/lib/date-format';
 
 export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName: string }) => {
   const lineItems = Array.isArray(data.lineItems) ? data.lineItems : [];
@@ -20,7 +21,7 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
           <View style={styles.metaTable}>
             <View style={[styles.metaRow, styles.metaRowTop]}>
               <Text style={styles.metaLabel}>Date</Text>
-              <Text style={styles.metaValue}>{data.date ? new Date(data.date).toLocaleDateString('en-US') : '[date]'}</Text>
+              <Text style={styles.metaValue}>{data.date ? formatDateDDMMYYYY(data.date) : '[date]'}</Text>
             </View>
             <View style={styles.metaRow}>
               <Text style={styles.metaLabel}>Invoice #</Text>
@@ -28,7 +29,7 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
             </View>
             <View style={styles.metaRow}>
               <Text style={styles.metaLabel}>Due Date</Text>
-              <Text style={styles.metaValue}>{data.dueDate ? new Date(data.dueDate).toLocaleDateString('en-US') : '[due date]'}</Text>
+              <Text style={styles.metaValue}>{data.dueDate ? formatDateDDMMYYYY(data.dueDate) : '[due date]'}</Text>
             </View>
           </View>
         </View>
@@ -94,4 +95,3 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
     </Document>
   );
 };
-

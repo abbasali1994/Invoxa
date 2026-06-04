@@ -1,12 +1,14 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function EditExpensePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function EditExpensePage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const [expense, setExpense] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { format } from "date-fns";
+import { formatDateDDMMYYYY } from "@/lib/date-format";
 
 export function InvoiceStatusCard({ invoice }: { invoice: any }) {
   return (
@@ -14,7 +14,7 @@ export function InvoiceStatusCard({ invoice }: { invoice: any }) {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-neutral-400">Due Date</span>
-          <span className="text-sm font-medium">{invoice.dueDate ? format(new Date(invoice.dueDate), 'MMM d, yyyy') : 'N/A'}</span>
+          <span className="text-sm font-medium">{invoice.dueDate ? formatDateDDMMYYYY(invoice.dueDate) : 'N/A'}</span>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { InvoiceStatus } from '@prisma/client';
 import { getCurrentWorkspaceId, getSession } from '@/lib/workspace';
+import { parseInvoiceDate } from '@/lib/date-format';
 
 const createInvoiceSchema = z.object({
   clientId: z.string().min(1, 'Client ID is required'),
@@ -21,7 +22,7 @@ const createInvoiceSchema = z.object({
   total: z.number(),
   currency: z.string().default('USD'),
   status: z.nativeEnum(InvoiceStatus).default(InvoiceStatus.DRAFT),
-  dueDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
+  dueDate: z.string().optional().transform(val => parseInvoiceDate(val)),
   notes: z.string().optional(),
   templateId: z.string().optional(),
   senderName: z.string().optional(),

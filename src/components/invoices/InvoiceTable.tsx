@@ -5,10 +5,10 @@ import { InvoiceRow } from "./InvoiceRow";
 export interface InvoiceTableProps {
   invoices: any[];
   toggleStar: (id: string, currentStarred: boolean) => void;
-  deleteDraft: (id: string) => void;
+  deleteInvoice: (id: string) => void;
 }
 
-export function InvoiceTable({ invoices, toggleStar, deleteDraft }: InvoiceTableProps) {
+export function InvoiceTable({ invoices, toggleStar, deleteInvoice }: InvoiceTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left text-neutral-400">
@@ -30,7 +30,7 @@ export function InvoiceTable({ invoices, toggleStar, deleteDraft }: InvoiceTable
               key={inv.id} 
               inv={inv} 
               toggleStar={toggleStar} 
-              deleteDraft={deleteDraft} 
+              deleteInvoice={deleteInvoice} 
             />
           ))}
           {invoices.length === 0 && (

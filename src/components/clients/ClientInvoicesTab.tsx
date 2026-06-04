@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { FileStack } from "lucide-react";
 import { StatusBadge } from "@/components/clients/StatusBadge";
+import { formatDateDDMMYYYY } from "@/lib/date-format";
 
 export function ClientInvoicesTab({ client }: { client: any }) {
   if (!client.invoices?.length) {
@@ -32,7 +33,7 @@ export function ClientInvoicesTab({ client }: { client: any }) {
             <tr key={inv.id} className="hover:bg-neutral-800/30 transition-colors">
               <td className="px-5 py-4 font-medium text-white">{inv.invoiceNumber}</td>
               <td className="px-5 py-4 text-neutral-400">{format(new Date(inv.createdAt), 'MMM d, yyyy')}</td>
-              <td className="px-5 py-4 text-neutral-400">{inv.dueDate ? format(new Date(inv.dueDate), 'MMM d, yyyy') : 'N/A'}</td>
+              <td className="px-5 py-4 text-neutral-400">{inv.dueDate ? formatDateDDMMYYYY(inv.dueDate) : 'N/A'}</td>
               <td className="px-5 py-4 text-white font-medium">${inv.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
               <td className="px-5 py-4"><StatusBadge status={inv.status} /></td>
               <td className="px-5 py-4 text-right">

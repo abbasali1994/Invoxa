@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { ExpenseDetailHeader } from "@/components/expenses/ExpenseDetailHeader";
@@ -9,9 +9,10 @@ import { ExpenseDetailInfo } from "@/components/expenses/ExpenseDetailInfo";
 import { ExpenseLineItemsDisplay } from "@/components/expenses/ExpenseLineItemsDisplay";
 import { ExpensePDFPreview } from "@/components/expenses/ExpensePDFPreview";
 
-export default function ExpenseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ExpenseDetailPage() {
   const router = useRouter();
-  const { id } = use(params);
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const [expense, setExpense] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,4 +57,3 @@ export default function ExpenseDetailPage({ params }: { params: Promise<{ id: st
     </div>
   );
 }
-
