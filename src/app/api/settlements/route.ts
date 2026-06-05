@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import Decimal from 'decimal.js';
 import { enforcePermission } from '@/lib/permission-check';
 import { getCurrentWorkspaceId } from '@/lib/workspace';
+import { SettlementStatus } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     // Validation
     const invoice = await prisma.invoice.findFirst({ 
       where: { id: invoiceId, workspaceId },
-      include: { client: true, settlements: true }
+      include: { client: true, settlements: { orderBy: { settledAt: 'desc' } } }
     });
     if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     if (invoice.status === 'CANCELLED') return NextResponse.json({ error: 'Cannot settle cancelled invoice' }, { status: 400 });
@@ -51,45 +52,43 @@ export async function POST(req: NextRequest) {
     const settlementGap = expectedINR.minus(actualINR);
     const netRealized = actualINR.minus(deductionsAmount);
 
-    // Calculate cumulative INR for partial settlement support
-    const existingSettlementsTotalINR = invoice.settlements.reduce((sum, s) => sum + (s.actualInrReceived || 0), 0);
-    const cumulativeINR = new Decimal(existingSettlementsTotalINR).plus(actualINR);
-
-    // Determine settlement status
-    const isFullySettled = cumulativeINR.gte(expectedINR.times(0.95)); // within 5% = fully settled
-    const newInvoiceStatus = isFullySettled ? 'PAID' : 'SENT';
-    const settlementStatus = isFullySettled ? 'SETTLED' : 'PARTIAL';
+    const existingSettlement = invoice.settlements[0];
+    const settlementStatus = SettlementStatus.SETTLED;
 
     // Run everything in a Prisma transaction
     const result = await prisma.$transaction(async (tx) => {
       
-      // 1. Create settlement record
-      const settlement = await tx.settlementRecord.create({
-        data: {
-          invoiceId,
-          invoicedUSD: invoice.total,
-          receivedUSD: actualINR.dividedBy(rate).toNumber(),
-          realizedINR: actualINR.toNumber(),
-          exchangeRate: rate.toNumber(),
-          platformFee: deductionsAmount.toNumber(),
-          netRealized: netRealized.toNumber(),
-          settledAt: new Date(settlementDate),
-          status: settlementStatus,
-          notes,
-          actualInrReceived: actualINR.toNumber(),
-          settlementGap: settlementGap.toNumber(),
-          paymentMethod,
-          receivingAccountId: receivingAccountId || null,
-          workspaceId,
-        }
-      });
+      const settlementData = {
+        invoiceId,
+        invoicedUSD: invoice.total,
+        receivedUSD: actualINR.dividedBy(rate).toNumber(),
+        realizedINR: actualINR.toNumber(),
+        exchangeRate: rate.toNumber(),
+        platformFee: deductionsAmount.toNumber(),
+        netRealized: netRealized.toNumber(),
+        settledAt: new Date(settlementDate),
+        status: settlementStatus,
+        notes,
+        actualInrReceived: actualINR.toNumber(),
+        settlementGap: settlementGap.toNumber(),
+        paymentMethod,
+        receivingAccountId: receivingAccountId || null,
+        workspaceId,
+      };
+
+      const settlement = existingSettlement
+        ? await tx.settlementRecord.update({
+            where: { id: existingSettlement.id },
+            data: settlementData
+          })
+        : await tx.settlementRecord.create({ data: settlementData });
 
       // 2. Update invoice status
       await tx.invoice.update({
         where: { id: invoiceId },
         data: { 
-          status: newInvoiceStatus,
-          paidAt: isFullySettled ? new Date(settlementDate) : undefined
+          status: 'PAID',
+          paidAt: new Date(settlementDate)
         }
       });
 
@@ -103,7 +102,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      if (receivingAccountId) {
+      if (receivingAccountId && !existingSettlement) {
         // 4. Create journal entry (Debit receiving account, Credit accounts receivable)
         await tx.journalEntry.create({
           data: {
@@ -132,7 +131,7 @@ export async function POST(req: NextRequest) {
         data: {
           entityType: 'Settlement',
           entityId: settlement.id,
-          action: 'CREATED',
+          action: existingSettlement ? 'UPDATED' : 'CREATED',
           changedFields: {
             invoiceId,
             actualInrReceived: actualINR.toNumber(),

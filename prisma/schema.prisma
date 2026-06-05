@@ -92,7 +92,6 @@ model Workspace {
   invoices    Invoice[]
   clients     Client[]
   expenses    Expense[]
-  projects    Project[]
   settlements SettlementRecord[]
   accounts    FinancialAccount[]
   invitations WorkspaceInvitation[]
@@ -130,7 +129,6 @@ model Client {
   ifscCode       String?
   swiftCode      String?
   invoices       Invoice[]
-  projects       Project[]
   createdAt      DateTime  @default(now())
 }
 
@@ -239,8 +237,6 @@ model Expense {
   lineItems         Json?
   ocrData           Json?
   isRecurring       Boolean           @default(false)
-  projectId         String?
-  project           Project?          @relation(fields: [projectId], references: [id])
   accountId         String?
   account           FinancialAccount? @relation(fields: [accountId], references: [id])
   journalEntries    JournalEntry[]
@@ -285,33 +281,6 @@ model JournalEntry {
   createdAt       DateTime         @default(now())
 }
 
-model Project {
-  id          String        @id @default(cuid())
-  workspaceId String?
-  workspace   Workspace?    @relation(fields: [workspaceId], references: [id])
-  name        String
-  clientId    String
-  client      Client        @relation(fields: [clientId], references: [id])
-  budget      Float?
-  currency    String        @default("USD")
-  startDate   DateTime?
-  endDate     DateTime?
-  status      ProjectStatus @default(ACTIVE)
-  milestones  Milestone[]
-  expenses    Expense[]
-  createdAt   DateTime      @default(now())
-}
-
-model Milestone {
-  id        String          @id @default(cuid())
-  projectId String
-  project   Project         @relation(fields: [projectId], references: [id])
-  title     String
-  amount    Float
-  dueDate   DateTime?
-  status    MilestoneStatus @default(PENDING)
-  invoiceId String?
-}
 
 model AuditLog {
   id            String   @id @default(cuid())
@@ -391,18 +360,6 @@ enum WorkflowType {
   BACKUP
 }
 
-enum ProjectStatus {
-  ACTIVE
-  COMPLETED
-  ON_HOLD
-  CANCELLED
-}
-
-enum MilestoneStatus {
-  PENDING
-  INVOICED
-  PAID
-}
 
 enum QueueStatus {
   PENDING

@@ -13,8 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const expense = await prisma.expense.findFirst({
       where: { id, workspaceId, deletedAt: null },
       include: {
-        account: true,
-        project: true
+        account: true
       }
     });
 
@@ -75,7 +74,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         category: body.category,
         currency: body.currency,
         accountId: body.accountId,
-        projectId: body.projectId,
         status: body.status,
         isRecurring: body.isRecurring,
         paymentMethod: body.paymentMethod,

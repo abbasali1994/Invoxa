@@ -13,7 +13,6 @@ export const expenseSchema = z.object({
   category: z.string().min(1, "Category is required"),
   currency: z.string().min(1, "Currency is required"),
   accountId: z.string().optional(),
-  projectId: z.string().optional(),
   notes: z.string().optional(),
   isRecurring: z.boolean().default(false),
   lineItems: z.array(z.object({
@@ -34,7 +33,6 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
 
   const methods = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema as any),
@@ -63,7 +61,6 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
 
   useEffect(() => {
     fetch('/api/accounts').then(res => res.json()).then(data => { if(Array.isArray(data)) setAccounts(data); }).catch(()=>{});
-    fetch('/api/projects').then(res => res.json()).then(data => { if(Array.isArray(data)) setProjects(data); }).catch(()=>{});
   }, []);
 
   const onSubmit = async (data: ExpenseFormValues, status: 'SAVED' | 'DRAFT' = 'SAVED') => {
@@ -93,5 +90,5 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
 
   const previewData = { ...watch(), subtotal, total, amount: total, account: accounts.find(a => a.id === watch('accountId')) };
 
-  return { methods, onSubmit, isSaving, accounts, projects, subtotal, total, previewData };
+  return { methods, onSubmit, isSaving, accounts, subtotal, total, previewData };
 }

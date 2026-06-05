@@ -19,11 +19,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         orderBy: {
           createdAt: 'desc'
         }
-      },
-      projects: {
-        orderBy: {
-          createdAt: 'desc'
-        }
       }
     } 
   });

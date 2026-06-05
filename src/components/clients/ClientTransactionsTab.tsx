@@ -22,7 +22,7 @@ export function ClientTransactionsTab({ client }: { client: any }) {
             <th className="px-5 py-4 font-medium">Date</th>
             <th className="px-5 py-4 font-medium">Invoiced USD</th>
             <th className="px-5 py-4 font-medium">Net Realized</th>
-            <th className="px-5 py-4 font-medium">Settlement Gap</th>
+            <th className="px-5 py-4 font-medium">Deductions</th>
             <th className="px-5 py-4 font-medium text-right">Status</th>
           </tr>
         </thead>

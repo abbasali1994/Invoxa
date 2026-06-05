@@ -12,10 +12,10 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q') || '';
 
     if (!query || query.length < 2) {
-      return NextResponse.json({ clients: [], invoices: [], expenses: [], projects: [] });
+      return NextResponse.json({ clients: [], invoices: [], expenses: [] });
     }
 
-    const [clients, invoices, expenses, projects] = await Promise.all([
+    const [clients, invoices, expenses] = await Promise.all([
       prisma.client.findMany({
         where: { workspaceId, name: { contains: query } },
         take: 5
@@ -35,14 +35,10 @@ export async function GET(request: NextRequest) {
       prisma.expense.findMany({
         where: { workspaceId, deletedAt: null, vendor: { contains: query } },
         take: 5
-      }),
-      prisma.project.findMany({
-        where: { workspaceId, name: { contains: query } },
-        take: 5
       })
     ]);
 
-    return NextResponse.json({ clients, invoices, expenses, projects });
+    return NextResponse.json({ clients, invoices, expenses });
   } catch (error) {
     console.error('Search error:', error);
     return NextResponse.json({ error: 'Search failed' }, { status: 500 });

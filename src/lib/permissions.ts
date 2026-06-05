@@ -25,8 +25,7 @@ export const permissions = {
     'expense.create',
     'expense.view',
     'expense.edit',
-    'project.create',
-    'project.view',
+
     'report.view',
     'account.view',
     'ledger.view',

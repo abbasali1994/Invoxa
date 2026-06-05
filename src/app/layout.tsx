@@ -50,8 +50,7 @@ export default function RootLayout({
                     <Link href="/invoices" className="flex-1 flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors pr-10"><FileText className="w-4 h-4" /> <span>Invoices</span></Link>
                     <Link href="/invoices/new" className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded transition-all z-10"><Plus className="w-4 h-4" /></Link>
                   </div>
-                  <Link href="/clients" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><Users className="w-4 h-4" /> <span>Clients</span></Link>
-                  
+                  <Link href="/clients" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><Users className="w-4 h-4" /> <span>Clients</span></Link>                  
                   <div className="group relative flex items-center">
                     <Link href="/expenses" className="flex-1 flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors pr-10"><Receipt className="w-4 h-4" /> <span>Expenses</span></Link>
                     <Link href="/expenses/new" className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded transition-all z-10"><Plus className="w-4 h-4" /></Link>

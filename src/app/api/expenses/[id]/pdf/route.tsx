@@ -15,8 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const expense = await prisma.expense.findFirst({
       where: { id, workspaceId },
       include: {
-        account: true,
-        project: true
+        account: true
       }
     });
 
