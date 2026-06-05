@@ -1,26 +1,58 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWorkspaceId } from '@/lib/workspace'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+function getPeriodDates(period: string | null): { start: Date, end: Date } {
+  const now = new Date();
+  if (period && period.match(/^\d{4}-\d{2}$/)) {
+    const [year, month] = period.split('-').map(Number);
+    const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
+    const end = new Date(year, month, 1, 0, 0, 0, 0); // start of next month
+    return { start, end };
+  }
+  
+  // Default to current-fy (April 1st to now)
+  const currentMonth = now.getMonth(); // 0-11
+  let startYear = now.getFullYear();
+  if (currentMonth < 3) { // Jan, Feb, Mar are part of previous year's FY
+    startYear -= 1;
+  }
+  const start = new Date(startYear, 3, 1, 0, 0, 0, 0); // April 1st
+  const end = new Date(now);
+  return { start, end };
+}
+
+export async function GET(req: NextRequest) {
   try {
     const workspaceId = await getCurrentWorkspaceId();
     if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
 
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+    const url = new URL(req.url);
+    const invoicedPeriod = url.searchParams.get('invoicedPeriod');
+    const realizedPeriod = url.searchParams.get('realizedPeriod');
+
+    const invoicedDates = getPeriodDates(invoicedPeriod);
+    const realizedDates = getPeriodDates(realizedPeriod);
 
     const [invoicedThisMonth, realizedINR, pendingInvoices, outstandingReceivables, settlementGap] =
       await Promise.all([
         prisma.invoice.aggregate({
-          where: { workspaceId, createdAt: { gte: startOfMonth }, deletedAt: null },
+          where: { 
+            workspaceId, 
+            createdAt: { gte: invoicedDates.start, lt: invoicedDates.end }, 
+            deletedAt: null 
+          },
           _sum: { total: true },
         }).catch(() => ({ _sum: { total: 0 } })),
 
         prisma.settlementRecord.aggregate({
-          where: { workspaceId, status: { in: ['SETTLED', 'PARTIAL'] } },
+          where: { 
+            workspaceId, 
+            status: { in: ['SETTLED', 'PARTIAL'] },
+            settledAt: { gte: realizedDates.start, lt: realizedDates.end }
+          },
           _sum: { actualInrReceived: true },
         }).catch(() => ({ _sum: { actualInrReceived: 0 } })),
 

@@ -22,6 +22,11 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
 
   const [rateStatus, setRateStatus] = useState<"loading" | "live" | "fallback">("loading");
 
+  const settlementDate = watch("settlementDate");
+  const [lastFetchedDate, setLastFetchedDate] = useState<string | null>(
+    existingSettlement ? toDateInputValue(existingSettlement.settledAt) : null
+  );
+
   useEffect(() => {
     if (!open || !invoice) return;
 
@@ -38,31 +43,49 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
       })
       .catch(() => {});
 
-    if (existingSettlement) {
+    if (existingSettlement && lastFetchedDate === null) {
       setValue("actualInrReceived", existingSettlement.actualInrReceived || "");
       setValue("exchangeRate", existingSettlement.exchangeRate || 83.5);
       setValue("paymentMethod", existingSettlement.paymentMethod || "WISE");
       setValue("settlementDate", toDateInputValue(existingSettlement.settledAt));
       setValue("notes", existingSettlement.notes || "");
       setRateStatus("fallback");
+      setLastFetchedDate(toDateInputValue(existingSettlement.settledAt));
       return;
     }
 
+    if (settlementDate === lastFetchedDate) return;
+
     const fetchExchangeRate = async () => {
+      const currency = invoice.currency || "USD";
+      if (currency === "INR") {
+        setValue("exchangeRate", 1);
+        setRateStatus("live");
+        setLastFetchedDate(settlementDate);
+        return;
+      }
+
       setRateStatus("loading");
       try {
-        const res = await fetch("https://api.frankfurter.app/latest?from=USD&to=INR");
+        const res = await fetch(`https://api.frankfurter.app/${settlementDate}?from=${currency}&to=INR`);
+        if (!res.ok) throw new Error("API failed");
         const data = await res.json();
-        setValue("exchangeRate", data.rates.INR);
-        setRateStatus("live");
+        if (data.rates && data.rates.INR) {
+          setValue("exchangeRate", data.rates.INR);
+          setRateStatus("live");
+        } else {
+          throw new Error("No rate returned");
+        }
       } catch {
-        setValue("exchangeRate", 83.5);
+        setValue("exchangeRate", 83.5); // Fallback
         setRateStatus("fallback");
+      } finally {
+        setLastFetchedDate(settlementDate);
       }
     };
 
     fetchExchangeRate();
-  }, [open, setValue, invoice, existingSettlement]);
+  }, [open, setValue, invoice, existingSettlement, settlementDate, lastFetchedDate]);
 
   const actualInrReceived = parseFloat(watch("actualInrReceived") as string) || 0;
   const exchangeRate = watch("exchangeRate") || 0;

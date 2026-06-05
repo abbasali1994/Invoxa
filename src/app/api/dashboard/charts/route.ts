@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWorkspaceId } from '@/lib/workspace'
 
 export const dynamic = 'force-dynamic'
 
-function getLast6Months() {
+function get12Months() {
   const result = []
   const now = new Date()
-  for (let i = 5; i >= 0; i--) {
+  for (let i = 11; i >= 0; i--) {
     const start = new Date(now.getFullYear(), now.getMonth() - i, 1, 0, 0, 0, 0)
     const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999)
     result.push({
@@ -19,19 +19,22 @@ function getLast6Months() {
   return result
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const workspaceId = await getCurrentWorkspaceId();
     if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
 
-    const months = getLast6Months()
-    const sixMonthsAgo = months[0].start
+    const url = new URL(req.url);
+    const revenuePeriod = url.searchParams.get('revenuePeriod');
+
+    const months = get12Months()
+    const earliestDate = months[0].start
 
     // Fetch all settlements in range
     const settlements = await prisma.settlementRecord.findMany({
       where: {
         workspaceId,
-        settledAt: { gte: sixMonthsAgo },
+        settledAt: { gte: earliestDate },
         status: { in: ['SETTLED', 'PARTIAL'] },
       },
       select: {
@@ -39,6 +42,7 @@ export async function GET() {
         actualInrReceived: true,
         netRealized: true,
         exchangeRate: true,
+        invoice: { include: { client: true } },
       },
     })
 
@@ -46,22 +50,10 @@ export async function GET() {
     const expenses = await prisma.expense.findMany({
       where: {
         workspaceId,
-        date: { gte: sixMonthsAgo },
+        date: { gte: earliestDate },
         deletedAt: null,
       },
       select: { date: true, amount: true, currency: true },
-    })
-
-    // Fetch all paid invoices in range with client
-    const paidInvoices = await prisma.invoice.findMany({
-      where: {
-        workspaceId,
-        status: 'PAID',
-        paidAt: { gte: sixMonthsAgo },
-        deletedAt: null,
-      },
-      include: { client: true },
-      orderBy: { paidAt: 'asc' },
     })
 
     // ── CASHFLOW — strictly monthly ──────────────────────────
@@ -101,29 +93,52 @@ export async function GET() {
       }
     })
 
-    // ── REVENUE BY CLIENT — strictly monthly ─────────────────
+    // ── REVENUE BY CLIENT — filtered optionally by month ─────
+    let revenueMonthsFilter = months;
+    if (revenuePeriod && revenuePeriod.match(/^\d{4}-\d{2}$/)) {
+      const [year, month] = revenuePeriod.split('-').map(Number);
+      const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
+      const end = new Date(year, month, 1, 0, 0, 0, -1);
+      revenueMonthsFilter = [{
+        label: start.toLocaleString('en', { month: 'short' }),
+        start,
+        end,
+      }];
+    }
+
     const clientSet = new Set<string>()
     const monthClientMap: Record<string, Record<string, number>> = {}
 
-    for (const invoice of paidInvoices) {
-      if (!invoice.paidAt || !invoice.client) continue
-      const paidAt = new Date(invoice.paidAt)
+    for (const settlement of settlements) {
+      if (!settlement.settledAt || !settlement.invoice?.client) continue
+      const settledAt = new Date(settlement.settledAt)
 
-      const matchedMonth = months.find(
-        ({ start, end }) => paidAt >= start && paidAt <= end
+      const matchedMonth = revenueMonthsFilter.find(
+        ({ start, end }) => settledAt >= start && settledAt <= end
       )
       if (!matchedMonth) continue
 
       const monthLabel = matchedMonth.label
-      const clientName = invoice.client.name
+      const clientName = settlement.invoice.client.name
       clientSet.add(clientName)
 
       if (!monthClientMap[monthLabel]) monthClientMap[monthLabel] = {}
+      
+      // Calculate revenue (USD equivalent)
+      let revenue = 0;
+      if (settlement.netRealized && settlement.exchangeRate && settlement.exchangeRate > 0) {
+        revenue = settlement.netRealized / settlement.exchangeRate;
+      } else if (settlement.actualInrReceived && settlement.exchangeRate && settlement.exchangeRate > 0) {
+        revenue = settlement.actualInrReceived / settlement.exchangeRate;
+      } else {
+        revenue = settlement.netRealized || 0;
+      }
+
       monthClientMap[monthLabel][clientName] =
-        (monthClientMap[monthLabel][clientName] || 0) + invoice.total
+        (monthClientMap[monthLabel][clientName] || 0) + revenue
     }
 
-    const revenueMonths = months.map(({ label }) => ({
+    const revenueMonthsData = revenueMonthsFilter.map(({ label }) => ({
       month: label,
       ...(monthClientMap[label] || {}),
     }))
@@ -148,7 +163,7 @@ export async function GET() {
 
     return NextResponse.json({
       cashflow,
-      revenueByClient: { months: revenueMonths, clients },
+      revenueByClient: { months: revenueMonthsData, clients },
       expenseBreakdown,
     })
   } catch (error) {
