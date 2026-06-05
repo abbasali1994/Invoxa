@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
-export const TABS = ['General', 'Payments', 'Scheduler'] as const;
+export const TABS = ['General', 'Payments', 'Scheduler', 'Team'] as const;
 export type Tab = typeof TABS[number];
 
 const DEFAULT_PAYMENT_METHODS = [
