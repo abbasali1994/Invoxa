@@ -4,6 +4,7 @@ import { useSettings, TABS } from '@/hooks/useSettings'
 import { GeneralSettingsTab } from '@/components/settings/GeneralSettingsTab'
 import { PaymentSettingsTab } from '@/components/settings/PaymentSettingsTab'
 import { SchedulerSettingsTab } from '@/components/settings/SchedulerSettingsTab'
+import { TeamSettingsTab } from '@/components/settings/TeamSettingsTab'
 
 export default function SettingsPage() {
   const settings = useSettings()
@@ -38,6 +39,7 @@ export default function SettingsPage() {
           {activeTab === 'General' && <GeneralSettingsTab {...settings} />}
           {activeTab === 'Payments' && <PaymentSettingsTab {...settings} />}
           {activeTab === 'Scheduler' && <SchedulerSettingsTab />}
+          {activeTab === 'Team' && <TeamSettingsTab />}
         </div>
       </div>
     </div>
