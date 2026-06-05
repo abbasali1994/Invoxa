@@ -13,44 +13,15 @@ const CLIENT_COLORS = [
 export interface RevenueChartProps {
   data: Record<string, any>[]
   clients: string[]
-  revenuePeriod: string
-  setRevenuePeriod: (p: string) => void
 }
 
-function generateMonthOptions() {
-  const options = [{ value: '12mo', label: 'Last 12 Months' }];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    options.push({ value, label });
-  }
-  return options;
-}
-
-export function RevenueChart({ data, clients, revenuePeriod, setRevenuePeriod }: RevenueChartProps) {
-  const monthOptions = React.useMemo(() => generateMonthOptions(), []);
-
-  const selectedLabel = revenuePeriod === '12mo' 
-    ? '(12mo)' 
-    : `(${monthOptions.find(o => o.value === revenuePeriod)?.label})`;
-
+export function RevenueChart({ data, clients }: RevenueChartProps) {
   return (
     <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
-      <div className="flex justify-between items-start mb-1">
-        <h3 className="text-lg font-medium">Revenue by Client {selectedLabel}</h3>
-        <select 
-          value={revenuePeriod} 
-          onChange={(e) => setRevenuePeriod(e.target.value)}
-          className="bg-neutral-800 border border-neutral-700 text-xs rounded px-2 py-1 outline-none text-neutral-300 focus:ring-1 focus:ring-indigo-500"
-        >
-          {monthOptions.map(o => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+      <div className="mb-4">
+        <h3 className="text-lg font-medium">Revenue by Client</h3>
+        <p className="text-sm text-neutral-500 mt-0.5">Monthly revenue breakdown per client</p>
       </div>
-      <p className="text-sm text-neutral-500 mb-4">Monthly revenue breakdown per client</p>
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} barCategoryGap="20%" barGap={2}>
