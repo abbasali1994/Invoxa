@@ -9,7 +9,7 @@ export function LineItemsTable() {
   const watchLineItems = watch("lineItems") || [];
 
   const subtotal = watchLineItems.reduce((sum: number, item: any) => {
-    return item.isSection ? sum : new Decimal(sum).plus(new Decimal(item.hours || 0).times(item.cost || 0)).toNumber();
+    return item.isSection ? sum : new Decimal(sum).plus(new Decimal(item.amount || 0)).toNumber();
   }, 0);
 
   return (
@@ -23,25 +23,24 @@ export function LineItemsTable() {
       </div>
       
       <div className="space-y-3">
-        <div style={{ display: 'grid', gridTemplateColumns: '3fr 80px 100px 110px 40px', gap: '8px', alignItems: 'center' }} className="text-sm font-medium text-neutral-400 px-1">
-          <span>Description</span><span className="text-right">Hours</span><span className="text-right">Cost</span><span className="text-right">Amount</span><span></span>
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 80px 110px 40px', gap: '8px', alignItems: 'center' }} className="text-sm font-medium text-neutral-400 px-1">
+          <span>Description</span><span className="text-right">Hours</span><span className="text-right">Amount</span><span></span>
         </div>
 
         {fields.map((field, index) => {
           const isSec = watchLineItems[index]?.isSection;
           return (
-            <div key={field.id} style={{ display: 'grid', gridTemplateColumns: '3fr 80px 100px 110px 40px', gap: '8px', alignItems: 'center' }}>
+            <div key={field.id} style={{ display: 'grid', gridTemplateColumns: '3fr 80px 110px 40px', gap: '8px', alignItems: 'center' }}>
               <div style={{ minWidth: 0 }}>
                 <input {...register(`lineItems.${index}.description` as const)} placeholder={isSec ? "Section Header" : "Description"} className={`w-full min-w-0 bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none ${isSec ? 'font-bold text-indigo-400' : ''}`} />
                 {(errors.lineItems as any)?.[index]?.description && <p className="text-rose-500 text-xs mt-1">{(errors.lineItems as any)[index]?.description?.message}</p>}
               </div>
               {!isSec ? (
                 <>
-                  <input type="number" step="0.1" {...register(`lineItems.${index}.hours` as const, { valueAsNumber: true })} placeholder="0" className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none min-w-0" onChange={(e) => setValue(`lineItems.${index}.amount`, new Decimal(parseFloat(e.target.value) || 0).times(watchLineItems[index]?.cost || 0).toNumber())} />
-                  <input type="number" step="0.01" {...register(`lineItems.${index}.cost` as const, { valueAsNumber: true })} placeholder="0.00" className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none min-w-0" onChange={(e) => setValue(`lineItems.${index}.amount`, new Decimal(watchLineItems[index]?.hours || 0).times(parseFloat(e.target.value) || 0).toNumber())} />
-                  <div className="py-2 px-3 bg-neutral-900 border border-neutral-800 rounded-md text-sm text-right text-neutral-400 truncate min-w-0">${watchLineItems[index]?.amount?.toFixed(2) || "0.00"}</div>
+                  <input type="number" step="0.1" {...register(`lineItems.${index}.hours` as const, { valueAsNumber: true })} placeholder="0" className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none min-w-0" />
+                  <input type="number" step="0.01" {...register(`lineItems.${index}.amount` as const, { valueAsNumber: true })} placeholder="0.00" className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none min-w-0" />
                 </>
-              ) : <div className="col-span-3"></div>}
+              ) : <div className="col-span-2"></div>}
               <button type="button" onClick={() => remove(index)} className="p-2 text-neutral-500 hover:text-rose-400 transition-colors flex justify-center min-w-0"><Trash2 className="w-4 h-4" /></button>
             </div>
           );
