@@ -26,10 +26,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       <InvoicePDFDocument data={invoice} clientName={invoice.client.name} />
     );
 
+    const dateObj = new Date(invoice.createdAt);
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[dateObj.getMonth()];
+    const year = dateObj.getFullYear();
+    const safeCompanyName = (invoice.client?.name || 'invoice').replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `${safeCompanyName}-${month}-${year}.pdf`;
+
     return new NextResponse(buffer as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber || id}.pdf"`
+        'Content-Disposition': `attachment; filename="${filename}"`
       }
     });
   } catch (error) {
