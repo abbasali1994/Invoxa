@@ -15,7 +15,7 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
       exchangeRate: existingSettlement?.exchangeRate ?? 83.5,
       paymentMethod: existingSettlement?.paymentMethod || (invoice?.paymentMethod?.toUpperCase().replace(" ", "_")) || "WISE",
       receivingAccountId: existingSettlement?.receivingAccountId || "",
-      settlementDate: toDateInputValue(existingSettlement?.settledAt),
+      settlementDate: toDateInputValue(existingSettlement?.settledAt ?? invoice?.dueDate),
       notes: existingSettlement?.notes || "",
     },
   });
