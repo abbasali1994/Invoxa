@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const { start, end } = parseDateRange(url.searchParams.get('from'), url.searchParams.get('to'));
 
-    const [invoicedThisMonth, realizedINR, pendingInvoices, fxData] =
+    const [invoicedThisMonth, realizedINR, pendingInvoices, expenses, fxData] =
       await Promise.all([
         prisma.invoice.aggregate({
           where: {
@@ -58,6 +58,14 @@ export async function GET(req: NextRequest) {
           select: { total: true },
         }).catch(() => []),
 
+        prisma.expense.findMany({
+          where: {
+            workspaceId,
+            date: { gte: start, lte: end },
+          },
+          select: { amount: true, currency: true },
+        }).catch(() => []),
+
         fetch('https://api.frankfurter.app/latest?from=USD&to=INR')
           .then(r => r.json())
           .catch(() => null),
@@ -65,10 +73,16 @@ export async function GET(req: NextRequest) {
 
     const usdToInr: number = fxData?.rates?.INR ?? 83.5;
     const pendingUSD = pendingInvoices.reduce((sum, i) => sum + i.total, 0);
+    const totalExpensesINR = expenses.reduce((sum, e) => {
+      return sum + (e.currency === 'INR' ? e.amount : e.amount * usdToInr);
+    }, 0);
+    const totalRealizedINR = realizedINR._sum.actualInrReceived || 0;
 
     return NextResponse.json({
       totalInvoicedUSD: invoicedThisMonth._sum.total || 0,
-      totalRealizedINR: realizedINR._sum.actualInrReceived || 0,
+      totalRealizedINR,
+      totalExpensesINR,
+      realizedProfitINR: totalRealizedINR - totalExpensesINR,
       pendingSettlements: {
         count: pendingInvoices.length,
         usdValue: pendingUSD,
