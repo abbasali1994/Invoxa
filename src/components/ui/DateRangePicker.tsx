@@ -149,54 +149,63 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
   const activeLabel = getActiveQuickLabel(value);
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative w-full sm:w-auto" ref={containerRef}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2.5 bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white hover:border-indigo-500/70 transition-all duration-150 shadow-sm"
+        className="w-full sm:w-auto flex items-center gap-2 bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white hover:border-indigo-500/70 transition-all duration-150 shadow-sm"
       >
         <Calendar className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-        <span className="font-medium text-neutral-100">
-          {formatRangeDisplay(value.from, value.to)}
-        </span>
-        {activeLabel && (
-          <span className="text-xs bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full font-medium">
-            {activeLabel}
+        {activeLabel ? (
+          <>
+            <span className="font-medium text-neutral-100 sm:hidden">{activeLabel}</span>
+            <span className="hidden sm:inline font-medium text-neutral-100">
+              {formatRangeDisplay(value.from, value.to)}
+            </span>
+            <span className="hidden sm:inline text-xs bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full font-medium">
+              {activeLabel}
+            </span>
+          </>
+        ) : (
+          <span className="font-medium text-neutral-100 truncate max-w-[180px] sm:max-w-none">
+            {formatRangeDisplay(value.from, value.to)}
           </span>
         )}
         <ChevronDown
-          className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-neutral-500 flex-shrink-0 transition-transform duration-200 ml-auto sm:ml-0 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-2 z-50 bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl overflow-hidden flex min-w-[480px]">
-          {/* Quick select column */}
-          <div className="flex flex-col p-3 gap-0.5 border-r border-neutral-800 min-w-[160px]">
+        <div className="absolute top-full right-0 mt-2 z-50 bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col sm:flex-row w-[calc(100vw-2rem)] sm:min-w-[480px] sm:w-auto max-h-[80vh] overflow-y-auto">
+          {/* Quick select */}
+          <div className="flex flex-col p-3 gap-0.5 border-b sm:border-b-0 sm:border-r border-neutral-800 sm:min-w-[160px]">
             <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest px-3 py-2">
               Quick Select
             </p>
-            {QUICK_OPTIONS.map(o => {
-              const isActive = activeLabel === o.label;
-              return (
-                <button
-                  key={o.label}
-                  onClick={() => {
-                    onChange(o.getRange());
-                    setOpen(false);
-                  }}
-                  className={`text-left px-3 py-2.5 rounded-lg text-sm transition-colors font-medium ${
-                    isActive
-                      ? "bg-indigo-500/20 text-indigo-400"
-                      : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                  }`}
-                >
-                  {o.label}
-                </button>
-              );
-            })}
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-0.5">
+              {QUICK_OPTIONS.map(o => {
+                const isActive = activeLabel === o.label;
+                return (
+                  <button
+                    key={o.label}
+                    onClick={() => {
+                      onChange(o.getRange());
+                      setOpen(false);
+                    }}
+                    className={`text-left px-3 py-2.5 rounded-lg text-sm transition-colors font-medium ${
+                      isActive
+                        ? "bg-indigo-500/20 text-indigo-400"
+                        : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Custom range column */}
+          {/* Custom range */}
           <div className="flex flex-col p-5 gap-4 flex-1">
             <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest">
               Custom Range
