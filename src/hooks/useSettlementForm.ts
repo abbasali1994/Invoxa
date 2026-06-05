@@ -67,17 +67,20 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
 
       setRateStatus("loading");
       try {
-        const res = await fetch(`https://api.frankfurter.app/${settlementDate}?from=${currency}&to=INR`);
+        const res = await fetch(`/api/exchange-rate?date=${settlementDate}&from=${currency}&to=INR`);
         if (!res.ok) throw new Error("API failed");
         const data = await res.json();
-        if (data.rates && data.rates.INR) {
-          setValue("exchangeRate", data.rates.INR);
+        if (data.rate != null && !data.fallback) {
+          setValue("exchangeRate", data.rate);
           setRateStatus("live");
+        } else if (data.rate != null) {
+          setValue("exchangeRate", data.rate);
+          setRateStatus("fallback");
         } else {
           throw new Error("No rate returned");
         }
       } catch {
-        setValue("exchangeRate", 83.5); // Fallback
+        setValue("exchangeRate", 83.5);
         setRateStatus("fallback");
       } finally {
         setLastFetchedDate(settlementDate);
