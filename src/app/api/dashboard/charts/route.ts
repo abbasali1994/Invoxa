@@ -78,15 +78,11 @@ export async function GET(req: NextRequest) {
       });
 
       const realizedRevenue = monthSettlements.reduce((sum, s) => {
-        if (s.netRealized && s.exchangeRate && s.exchangeRate > 0)
-          return sum + s.netRealized / s.exchangeRate;
-        if (s.actualInrReceived && s.exchangeRate && s.exchangeRate > 0)
-          return sum + s.actualInrReceived / s.exchangeRate;
-        return sum + (s.netRealized || 0);
+        return sum + (s.actualInrReceived || s.netRealized || 0);
       }, 0);
 
       const totalExpenses = monthExpenses.reduce((sum, e) => {
-        return sum + (e.currency === 'INR' ? e.amount / 84 : e.amount);
+        return sum + (e.currency === 'INR' ? e.amount : e.amount * 84);
       }, 0);
 
       return {

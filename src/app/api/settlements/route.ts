@@ -154,13 +154,21 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const workspaceId = await getCurrentWorkspaceId();
     if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
 
+    const { searchParams } = new URL(req.url);
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+
+    const dateFilter = from && to
+      ? { settledAt: { gte: new Date(from + 'T00:00:00'), lte: new Date(to + 'T23:59:59') } }
+      : {};
+
     const settlements = await prisma.settlementRecord.findMany({
-      where: { workspaceId },
+      where: { workspaceId, ...dateFilter },
       orderBy: { settledAt: 'desc' },
       include: {
         invoice: { include: { client: true } },
