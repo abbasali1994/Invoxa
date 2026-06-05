@@ -63,17 +63,17 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Invoices</h2>
           <p className="text-neutral-400">Manage and track your billing pipeline.</p>
         </div>
-        <Link href="/invoices/new" className="flex items-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
+        <Link href="/invoices/new" className="flex items-center justify-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> New Invoice
         </Link>
       </div>
       <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 flex flex-col">
-        <div className="p-4 border-b border-neutral-800 flex gap-4">
+        <div className="p-4 border-b border-neutral-800 flex flex-col gap-3">
           <InvoiceFilters search={search} setSearch={setSearch} />
           <InvoiceTabBar counts={counts} activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>

@@ -18,14 +18,14 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
   return (
     <FormProvider {...methods}>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">{isEdit ? 'Edit Invoice' : 'Create Invoice'}</h2>
             <p className="text-neutral-400">
               {lastSaved ? `Draft saved at ${lastSaved.toLocaleTimeString()}` : "Generate a new AI-assisted invoice."}
             </p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex gap-3 sm:shrink-0">
             <button 
               type="button"
               onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}

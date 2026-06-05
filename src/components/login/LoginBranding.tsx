@@ -2,27 +2,25 @@ import React from "react";
 
 export function LoginBranding() {
   return (
-    <div style={{
-      background: 'linear-gradient(135deg, #4f46e5 0%, #1e1b4b 60%, #0f0e2a 100%)',
-      display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '3rem',
-      position: 'relative', overflow: 'hidden'
-    }}>
-      {/* Background glow */}
-      <div style={{ position: 'absolute', top: '20%', left: '30%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(99,102,241,0.2)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+    <div
+      className="hidden md:flex flex-col justify-center items-center p-12 relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #1e1b4b 60%, #0f0e2a 100%)' }}
+    >
+      <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(99,102,241,0.2)', filter: 'blur(80px)' }} />
 
-      <div style={{ position: 'relative', textAlign: 'center', maxWidth: '420px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '1.5rem' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)' }}>
-            <span style={{ fontSize: '20px' }}>⚡</span>
+      <div className="relative text-center max-w-md w-full">
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <span className="text-xl">⚡</span>
           </div>
-          <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.5px', margin: 0 }}>Invoxa</h1>
+          <h1 className="text-4xl font-extrabold text-white tracking-tight">Invoxa</h1>
         </div>
 
-        <p style={{ color: '#c7d2fe', fontSize: '1.15rem', lineHeight: 1.6, marginBottom: '2.5rem' }}>
+        <p className="text-indigo-200 text-lg leading-relaxed mb-10">
           AI-Native Financial Operations Platform for Modern Agencies
         </p>
 
-        <svg viewBox="0 0 400 300" style={{ width: '100%', maxWidth: '380px', opacity: 0.85 }}>
+        <svg viewBox="0 0 400 300" className="w-full max-w-sm mx-auto opacity-85">
           <defs>
             <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#818cf8" />
@@ -43,9 +41,9 @@ export function LoginBranding() {
           <line x1="270" y1="90" x2="130" y2="210" stroke="#818cf8" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.5" />
         </svg>
 
-        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '2rem' }}>
+        <div className="flex flex-wrap gap-3 justify-center mt-8">
           {['Multi-Workspace', 'RBAC', 'Settlement AI'].map(tag => (
-            <span key={tag} style={{ fontSize: '11px', color: '#a5b4fc', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', padding: '4px 10px', borderRadius: '99px' }}>
+            <span key={tag} className="text-xs text-indigo-300 px-3 py-1 rounded-full" style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }}>
               {tag}
             </span>
           ))}

@@ -5,12 +5,12 @@ import { format } from "date-fns";
 export function SettlementTable({ settlements, router }: { settlements: any[]; router: any }) {
   return (
     <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 flex flex-col">
-      <div className="p-4 border-b border-neutral-800 flex gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="p-4 border-b border-neutral-800 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <input type="text" placeholder="Search invoices or clients..." className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 pl-9 pr-4 text-sm" />
         </div>
-        <button className="flex items-center px-4 border border-neutral-800 bg-neutral-950 rounded-md text-sm"><Filter className="w-4 h-4 mr-2" /> Filter</button>
+        <button className="flex items-center justify-center px-4 py-2 border border-neutral-800 bg-neutral-950 rounded-md text-sm shrink-0"><Filter className="w-4 h-4 mr-2" /> Filter</button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">

@@ -2,7 +2,7 @@ import React from "react";
 
 export function SettlementStats({ stats }: { stats: any }) {
   return (
-    <div className="grid grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
         <p className="text-sm text-neutral-400 mb-1">Total Invoiced (USD)</p>
         <p className="text-2xl font-bold">${stats.totalInvoicedUSD?.toLocaleString() || '0.00'}</p>

@@ -24,7 +24,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+    <div className="grid md:grid-cols-2 min-h-screen font-sans">
       <LoginBranding />
       <LoginCard loading={loading} handleSignIn={handleSignIn} />
     </div>
