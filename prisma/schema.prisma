@@ -23,6 +23,7 @@ model User {
   sessions        Session[]
   memberships     WorkspaceMember[]
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
+  sentInvitations WorkspaceInvitation[] @relation("UserInvitations")
   createdInvoices Invoice[]         @relation("InvoiceCreator")
   createdAt       DateTime          @default(now())
 }
@@ -63,6 +64,24 @@ model VerificationToken {
 
 // ─── Workspace Models ─────────────────────────────────────────────────────────
 
+model WorkspaceInvitation {
+  id          String           @id @default(cuid())
+  email       String
+  workspaceId String
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role        WorkspaceRole    @default(EDITOR)
+  token       String           @unique
+  invitedById String
+  invitedBy   User             @relation("UserInvitations", fields: [invitedById], references: [id])
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  lastSentAt  DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@unique([email, workspaceId])
+}
+
 model Workspace {
   id          String            @id @default(cuid())
   name        String
@@ -75,6 +94,7 @@ model Workspace {
   expenses    Expense[]
   settlements SettlementRecord[]
   accounts    FinancialAccount[]
+  invitations WorkspaceInvitation[]
   createdAt   DateTime          @default(now())
 }
 
@@ -298,6 +318,13 @@ model AIProcessingQueue {
 }
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
 
 enum WorkspaceRole {
   ADMIN

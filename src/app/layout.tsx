@@ -50,7 +50,7 @@ export default function RootLayout({
                     <Link href="/invoices" className="flex-1 flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors pr-10"><FileText className="w-4 h-4" /> <span>Invoices</span></Link>
                     <Link href="/invoices/new" className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded transition-all z-10"><Plus className="w-4 h-4" /></Link>
                   </div>
-                  <Link href="/clients" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><Users className="w-4 h-4" /> <span>Clients</span></Link>
+                  <Link href="/clients" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><Users className="w-4 h-4" /> <span>Clients</span></Link>                  
                   <div className="group relative flex items-center">
                     <Link href="/expenses" className="flex-1 flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors pr-10"><Receipt className="w-4 h-4" /> <span>Expenses</span></Link>
                     <Link href="/expenses/new" className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded transition-all z-10"><Plus className="w-4 h-4" /></Link>
@@ -61,9 +61,9 @@ export default function RootLayout({
                   <Link href="/ledger" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><BookOpen className="w-4 h-4" /> <span>Ledger</span></Link>
                   <Link href="/ledger/trial-balance" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><PieChart className="w-4 h-4 ml-2" /> <span>Trial Balance</span></Link>
                   <Link href="/reports" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><BarChart2 className="w-4 h-4" /> <span>Reports</span></Link>
-                  <div className="pt-4 pb-2 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Operations</div>
+                  {/* <div className="pt-4 pb-2 px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Operations</div>
                   <Link href="/ai-ops" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><Zap className="w-4 h-4" /> <span>AI Ops</span></Link>
-                  <Link href="/activity" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><Activity className="w-4 h-4" /> <span>Activity</span></Link>
+                  <Link href="/activity" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><Activity className="w-4 h-4" /> <span>Activity</span></Link> */}
                   <Link href="/settings" className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"><Settings className="w-4 h-4" /> <span>Settings</span></Link>
                 </nav>
               </aside>

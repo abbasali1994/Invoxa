@@ -3,11 +3,56 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
 import { authConfig } from './auth.config'
 import { cookies } from 'next/headers'
+import { logAction } from '@/lib/audit'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
+  events: {
+    async signIn({ user }) {
+      if (!user?.email || !user?.id) return;
+
+      try {
+        const pendingInvites = await prisma.workspaceInvitation.findMany({
+          where: { email: user.email, status: 'PENDING' }
+        });
+
+        for (const invite of pendingInvites) {
+          if (invite.expiresAt < new Date()) {
+            await prisma.workspaceInvitation.update({
+              where: { id: invite.id },
+              data: { status: 'EXPIRED' }
+            });
+            continue;
+          }
+
+          const existing = await prisma.workspaceMember.findUnique({
+            where: { workspaceId_userId: { workspaceId: invite.workspaceId, userId: user.id } }
+          });
+
+          if (!existing) {
+            await prisma.workspaceMember.create({
+              data: {
+                workspaceId: invite.workspaceId,
+                userId: user.id,
+                role: invite.role,
+              }
+            });
+          }
+
+          await prisma.workspaceInvitation.update({
+            where: { id: invite.id },
+            data: { status: 'ACCEPTED', acceptedAt: new Date() }
+          });
+
+          await logAction('WORKSPACE', invite.workspaceId, 'Invitation Accepted', { email: user.email, role: invite.role }, user.id);
+        }
+      } catch (error) {
+        console.error('Error processing invitations on signIn:', error);
+      }
+    }
+  },
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user }) {
