@@ -27,7 +27,7 @@ export function StatsRow({ stats, dateRange }: StatsRowProps) {
       />
       <StatCard
         title="Realized Revenue (₹)"
-        value={`₹${totalRealizedINR.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+        value={`₹${totalRealizedINR.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
         subtitle={rangeLabel}
         subtitleColor="text-indigo-400"
       />
