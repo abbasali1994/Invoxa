@@ -54,6 +54,14 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
   const { watch, setValue, getValues } = methods;
   const watchLineItems = watch("lineItems");
   const watchClientId = watch("clientId");
+  const watchDate = watch("date");
+
+  useEffect(() => {
+    if (!watchDate) return;
+    const d = new Date(watchDate);
+    d.setDate(d.getDate() + 2);
+    setValue("dueDate", d.toISOString().split("T")[0]);
+  }, [watchDate, setValue]);
 
   useEffect(() => {
     const client = clients.find(c => c.id === watchClientId);

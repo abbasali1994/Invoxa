@@ -16,8 +16,6 @@ export function PaymentDetailsForm() {
             <option value="">Select Method...</option>
             <option value="Bank Transfer">Bank Transfer</option>
             <option value="Crypto">Token Transfer (USDT)</option>
-            <option value="PayPal">PayPal</option>
-            <option value="Wise">Wise</option>
           </select>
         </div>
 
