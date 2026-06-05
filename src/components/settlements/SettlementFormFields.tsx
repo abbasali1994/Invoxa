@@ -1,6 +1,7 @@
 import React from "react";
+import { DatePicker } from "@/components/ui/DatePicker";
 
-export function SettlementFormFields({ register, rateStatus, accounts }: any) {
+export function SettlementFormFields({ register, rateStatus, accounts, settlementDateValue }: any) {
   return (
     <>
       <div className="pt-2 border-t border-neutral-800">
@@ -27,7 +28,7 @@ export function SettlementFormFields({ register, rateStatus, accounts }: any) {
         </div>
         <div>
           <label className="block font-medium mb-1">Settlement Date</label>
-          <input type="date" {...register("settlementDate")} className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500" />
+          <DatePicker {...register("settlementDate")} value={settlementDateValue} />
         </div>
       </div>
 

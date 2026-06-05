@@ -1,5 +1,6 @@
 import React from "react";
 import { Scan, Loader2, UploadCloud } from "lucide-react";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export function ReceiptOCRPanel({ isProcessing, aiData, setAiData, handleFileUpload, saveExpense }: any) {
   return (
@@ -47,7 +48,7 @@ export function ReceiptOCRPanel({ isProcessing, aiData, setAiData, handleFileUpl
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-neutral-500">Date</label>
-                <input type="date" value={aiData.date} onChange={(e) => setAiData({...aiData, date: e.target.value})} className="w-full bg-neutral-900 border border-neutral-800 rounded px-3 py-1 text-sm mt-1" />
+                <DatePicker value={aiData.date} onChange={(e) => setAiData({...aiData, date: e.target.value})} className="mt-1 bg-neutral-900 py-1" />
               </div>
               <div>
                 <label className="text-xs text-neutral-500">Category</label>

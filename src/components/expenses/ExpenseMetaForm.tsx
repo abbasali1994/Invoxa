@@ -1,8 +1,9 @@
 import React from 'react';
 import { useFormContext } from "react-hook-form";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export function ExpenseMetaForm({ accounts }: { accounts: any[] }) {
-  const { register, formState: { errors } } = useFormContext();
+  const { register, watch, formState: { errors } } = useFormContext();
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -17,7 +18,7 @@ export function ExpenseMetaForm({ accounts }: { accounts: any[] }) {
       </div>
       <div>
         <label className="block text-sm font-medium text-neutral-300 mb-1">Date</label>
-        <input type="date" {...register("date")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
+        <DatePicker {...register("date")} value={watch("date") || ""} />
       </div>
       <div>
         <label className="block text-sm font-medium text-neutral-300 mb-1">Category</label>
