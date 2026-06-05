@@ -53,14 +53,14 @@ export default function Home() {
       ) : (
         <>
           <StatsRow stats={statsData} dateRange={dateRange} />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <RevenueChart
               data={chartsData?.revenueByClient?.months ?? []}
               clients={chartsData?.revenueByClient?.clients ?? []}
             />
             <ExpenseBreakdownChart data={chartsData?.expenseBreakdown ?? []} />
-            <CashflowChart data={chartsData?.cashflow ?? []} />
           </div>
+          <CashflowChart data={chartsData?.cashflow ?? []} />
         </>
       )}
     </div>
