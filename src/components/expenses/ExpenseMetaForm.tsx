@@ -1,7 +1,7 @@
 import React from 'react';
 import { useFormContext } from "react-hook-form";
 
-export function ExpenseMetaForm({ accounts, projects }: { accounts: any[], projects: any[] }) {
+export function ExpenseMetaForm({ accounts }: { accounts: any[] }) {
   const { register, formState: { errors } } = useFormContext();
 
   return (
@@ -40,13 +40,7 @@ export function ExpenseMetaForm({ accounts, projects }: { accounts: any[], proje
           {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-neutral-300 mb-1">Project (Optional)</label>
-        <select {...register("projectId")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
-          <option value="">Select Project...</option>
-          {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-      </div>
+
       <div className="flex items-center space-x-2 mt-6">
         <input type="checkbox" id="isRecurring" {...register("isRecurring")} className="w-4 h-4 rounded border-neutral-800 bg-neutral-950 text-indigo-600 focus:ring-indigo-500" />
         <label htmlFor="isRecurring" className="text-sm font-medium text-neutral-300">Is Recurring</label>

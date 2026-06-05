@@ -9,7 +9,7 @@ import { ExpensePaymentDetailsForm } from "@/components/expenses/ExpensePaymentD
 import { ExpensePDFPreview } from "@/components/expenses/ExpensePDFPreview";
 
 export function ExpenseForm({ initialData, isEdit = false }: { initialData?: any, isEdit?: boolean }) {
-  const { methods, onSubmit, isSaving, accounts, projects, subtotal, total, previewData } = useExpenseForm(initialData, isEdit);
+  const { methods, onSubmit, isSaving, accounts, subtotal, total, previewData } = useExpenseForm(initialData, isEdit);
   const { handleSubmit } = methods;
 
   return (
@@ -43,7 +43,7 @@ export function ExpenseForm({ initialData, isEdit = false }: { initialData?: any
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-6 overflow-hidden">
-            <ExpenseMetaForm accounts={accounts} projects={projects} />
+            <ExpenseMetaForm accounts={accounts} />
             <ExpenseLineItemsTable subtotal={subtotal} total={total} taxRate={methods.getValues("taxRate") || 0} />
             <ExpensePaymentDetailsForm accounts={accounts} />
           </div>

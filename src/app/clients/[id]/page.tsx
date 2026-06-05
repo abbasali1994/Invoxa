@@ -5,7 +5,6 @@ import { useClientDetail } from "@/hooks/useClientDetail";
 import { ClientDetailHeader } from "@/components/clients/ClientDetailHeader";
 import { ClientStatCards } from "@/components/clients/ClientStatCards";
 import { ClientInvoicesTab } from "@/components/clients/ClientInvoicesTab";
-import { ClientProjectsTab } from "@/components/clients/ClientProjectsTab";
 import { ClientTransactionsTab } from "@/components/clients/ClientTransactionsTab";
 import { ClientUpcomingTab } from "@/components/clients/ClientUpcomingTab";
 import { ClientEditDrawer } from "@/components/clients/ClientEditDrawer";
@@ -18,7 +17,7 @@ export default function ClientDetailPage() {
 
   if (!client) return <div className="flex h-[80vh] justify-center items-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>;
 
-  const tabs = ['Invoices', 'Projects', 'Transactions', 'Upcoming'];
+  const tabs = ['Invoices', 'Transactions', 'Upcoming'];
 
   return (
     <div className="space-y-6 pb-20">
@@ -41,7 +40,6 @@ export default function ClientDetailPage() {
 
       <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden min-h-[400px]">
         {activeTab === 'Invoices' && <ClientInvoicesTab client={client} />}
-        {activeTab === 'Projects' && <ClientProjectsTab client={client} />}
         {activeTab === 'Transactions' && <ClientTransactionsTab client={client} />}
         {activeTab === 'Upcoming' && <ClientUpcomingTab client={client} />}
       </div>

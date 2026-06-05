@@ -18,13 +18,6 @@ export async function POST(request: NextRequest) {
       if (!account) return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    if (body.projectId) {
-      const project = await prisma.project.findFirst({
-        where: { id: body.projectId, workspaceId },
-        select: { id: true },
-      });
-      if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-    }
 
     const dateObj = new Date(body.date);
     const sevenDaysAgo = new Date(dateObj.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -54,7 +47,6 @@ export async function POST(request: NextRequest) {
         category: body.category,
         currency: body.currency || 'USD',
         accountId: body.accountId || undefined,
-        projectId: body.projectId || undefined,
         status: body.status || 'SAVED',
         isRecurring: body.isRecurring || false,
         paymentMethod: body.paymentMethod || undefined,
@@ -123,7 +115,7 @@ export async function GET(request: NextRequest) {
     const expenses = await prisma.expense.findMany({
       where,
       orderBy: { date: 'desc' },
-      include: { account: true, project: true }
+      include: { account: true }
     });
     return NextResponse.json(expenses);
   } catch (error) {

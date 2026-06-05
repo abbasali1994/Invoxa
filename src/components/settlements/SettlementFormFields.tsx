@@ -51,18 +51,9 @@ export function SettlementFormFields({ register, rateStatus, accounts }: any) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block font-medium mb-1">Deductions/Fees (optional)</label>
-          <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden">
-            <span className="px-3 text-neutral-500 border-r border-neutral-800 bg-neutral-900">₹</span>
-            <input type="number" step="0.01" {...register("deductions")} placeholder="1650" className="w-full p-2 bg-transparent outline-none" />
-          </div>
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Notes (optional)</label>
-          <textarea {...register("notes")} placeholder="Wise transfer after FX deduction." className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500 resize-none h-10" />
-        </div>
+      <div>
+        <label className="block font-medium mb-1">Notes (optional)</label>
+        <textarea {...register("notes")} placeholder="Wise transfer after FX deduction." className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500 resize-none h-10" />
       </div>
     </>
   );

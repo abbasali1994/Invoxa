@@ -10,7 +10,6 @@ export function ExpenseDetailInfo({ expense }: { expense: any }) {
         <div><p className="text-sm text-neutral-500">Category</p><p className="font-medium text-neutral-200">{expense.category}</p></div>
         <div><p className="text-sm text-neutral-500">Currency</p><p className="font-medium text-neutral-200">{expense.currency}</p></div>
         <div><p className="text-sm text-neutral-500">Account</p><p className="font-medium text-neutral-200">{expense.account?.name || 'Unlinked'}</p></div>
-        {expense.project && <div><p className="text-sm text-neutral-500">Project</p><p className="font-medium text-neutral-200">{expense.project.name}</p></div>}
         <div><p className="text-sm text-neutral-500">Payment Method</p><p className="font-medium text-neutral-200">{expense.paymentMethod || 'N/A'}</p></div>
       </div>
       
