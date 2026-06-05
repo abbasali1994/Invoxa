@@ -66,6 +66,7 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
 
   const actualInrReceived = parseFloat(watch("actualInrReceived") as string) || 0;
   const exchangeRate = watch("exchangeRate") || 0;
+  const settlementDateValue = watch("settlementDate") || "";
 
   const expectedINR = (invoice?.total * exchangeRate) || 0;
   const settlementGap = expectedINR - actualInrReceived;
@@ -103,6 +104,7 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
     actualInrReceived,
     expectedINR,
     settlementGap,
+    settlementDateValue,
     onSubmit: handleSubmit(onSubmit),
   };
 }
