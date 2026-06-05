@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const { start, end } = parseDateRange(url.searchParams.get('from'), url.searchParams.get('to'));
 
-    const [invoicedThisMonth, realizedINR, pendingInvoices, outstandingReceivables, settlementGap] =
+    const [invoicedThisMonth, realizedINR, pendingInvoices, outstandingReceivables, settlementGap, fxData] =
       await Promise.all([
         prisma.invoice.aggregate({
           where: {
@@ -62,14 +62,23 @@ export async function GET(req: NextRequest) {
           where: { workspaceId },
           _sum: { settlementGap: true },
         }).catch(() => ({ _sum: { settlementGap: 0 } })),
+
+        fetch('https://api.frankfurter.app/latest?from=USD&to=INR')
+          .then(r => r.json())
+          .catch(() => null),
       ]);
+
+    const usdToInr: number = fxData?.rates?.INR ?? 83.5;
+    const pendingUSD = pendingInvoices.reduce((sum, i) => sum + i.total, 0);
 
     return NextResponse.json({
       totalInvoicedUSD: invoicedThisMonth._sum.total || 0,
       totalRealizedINR: realizedINR._sum.actualInrReceived || 0,
       pendingSettlements: {
         count: pendingInvoices.length,
-        usdValue: pendingInvoices.reduce((sum, i) => sum + i.total, 0),
+        usdValue: pendingUSD,
+        inrValue: pendingUSD * usdToInr,
+        usdToInrRate: usdToInr,
       },
       outstandingReceivables: outstandingReceivables._sum.total || 0,
       totalSettlementGap: settlementGap._sum.settlementGap || 0,

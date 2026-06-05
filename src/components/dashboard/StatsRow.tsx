@@ -13,6 +13,8 @@ export function StatsRow({ stats, dateRange }: StatsRowProps) {
   const totalRealizedINR = stats?.totalRealizedINR ?? 0;
   const pendingSettlementsCount = stats?.pendingSettlements?.count ?? 0;
   const pendingSettlementsUSD = stats?.pendingSettlements?.usdValue ?? 0;
+  const pendingSettlementsINR = stats?.pendingSettlements?.inrValue ?? 0;
+  const usdToInrRate = stats?.pendingSettlements?.usdToInrRate ?? 83.5;
   const outstandingReceivablesUSD = stats?.outstandingReceivables ?? 0;
 
   const rangeLabel = getActiveQuickLabel(dateRange) ?? formatRangeDisplay(dateRange.from, dateRange.to);
@@ -33,8 +35,8 @@ export function StatsRow({ stats, dateRange }: StatsRowProps) {
       />
       <StatCard
         title="Pending Settlements"
-        value={`${pendingSettlementsCount} Invoices`}
-        subtitle={`Est value: $${pendingSettlementsUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        value={`$${pendingSettlementsUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        subtitle={`${pendingSettlementsCount} invoice${pendingSettlementsCount !== 1 ? 's' : ''} · ₹${pendingSettlementsINR.toLocaleString('en-IN', { maximumFractionDigits: 0 })} (@${usdToInrRate.toFixed(2)})`}
         icon={<Activity className="h-4 w-4" />}
       />
       <StatCard
