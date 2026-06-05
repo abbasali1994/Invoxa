@@ -1,4 +1,4 @@
-import { PrismaClient, AccountType, InvoiceStatus, SettlementStatus, ProjectStatus } from '@prisma/client';
+import { PrismaClient, AccountType, InvoiceStatus, SettlementStatus } from '@prisma/client';
 import { addDays, subDays } from 'date-fns';
 
 const prisma = new PrismaClient();
@@ -51,27 +51,7 @@ async function main() {
   );
   console.log(`Created ${clients.length} Clients`);
 
-  // 3. Create Projects (2)
-  const project1 = await prisma.project.create({
-    data: {
-      name: 'Acme Website Redesign',
-      clientId: clients[0].id,
-      budget: 50000,
-      currency: 'USD',
-      status: ProjectStatus.ACTIVE,
-    },
-  });
 
-  const project2 = await prisma.project.create({
-    data: {
-      name: 'Initech Mobile App',
-      clientId: clients[3].id,
-      budget: 120000,
-      currency: 'USD',
-      status: ProjectStatus.ACTIVE,
-    },
-  });
-  console.log('Created Projects');
 
   // 4. Create Invoices (20)
   const now = new Date();
@@ -134,7 +114,6 @@ async function main() {
         currency: 'USD',
         date: subDays(now, (i+1) * 2),
         accountId: bankAccount.id,
-        projectId: (i+1) % 3 === 0 ? project1.id : null,
         aiCategorized: false,
         status: 'SAVED',
         isRecurring: i % 4 === 0,

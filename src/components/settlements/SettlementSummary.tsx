@@ -12,7 +12,7 @@ export function SettlementSummary({ expectedINR, actualInrReceived, settlementGa
         <span>₹{actualInrReceived.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
       </div>
       <div className="flex justify-between border-t border-neutral-800 pt-2 mt-2 font-bold" style={{ color: settlementGap > 0 ? '#f87171' : (settlementGap < 0 ? '#34d399' : '#a3a3a3') }}>
-        <span>Settlement Gap:</span>
+        <span>Deductions:</span>
         <span>
           ₹{Math.abs(settlementGap).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           {settlementGap > 0 ? ' (loss)' : (settlementGap < 0 ? ' (gain)' : '')}
