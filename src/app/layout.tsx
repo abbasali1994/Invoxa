@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { SessionProvider } from "@/components/SessionProvider";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { NavigationArrows } from "@/components/NavigationArrows";
 import { headers } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -85,6 +86,7 @@ export default function RootLayout({
                     <ProfileDropdown />
                   </div>
                 </header>
+                <NavigationArrows />
                 {children}
               </main>
             </>
