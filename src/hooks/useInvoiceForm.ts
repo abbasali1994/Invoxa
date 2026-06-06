@@ -47,7 +47,7 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
       currency: "USD",
       senderName: "Abbas Ali Lokhandwala",
       date: new Date().toISOString().split('T')[0],
-      invoiceNumber: "#2604", 
+      invoiceNumber: "", // Will be fetched if new
       lineItems: [{ description: "", hours: 0, cost: 0, amount: 0, isSection: false }]
     }
   });
@@ -78,7 +78,13 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
     fetch('/api/clients').then(res => res.json()).then(data => {
       if(Array.isArray(data)) setClients(data);
     }).catch(() => toast.error("Failed to load clients"));
-  }, []);
+
+    if (!isEdit && !initialData?.invoiceNumber) {
+      fetch('/api/invoices/counts').then(res => res.json()).then(data => {
+        if (data.nextNumber) setValue("invoiceNumber", data.nextNumber);
+      }).catch(() => {});
+    }
+  }, [isEdit, initialData, setValue]);
 
   useEffect(() => {
     if (initialClientId) setValue('clientId', initialClientId);

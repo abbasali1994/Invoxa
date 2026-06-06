@@ -80,10 +80,6 @@ export const ExpensePDFDocument = ({ expense }: { expense: any }) => {
             <Text style={styles.paymentLabel}>Payment Method:</Text>
             <Text style={styles.paymentValue}>{expense.paymentMethod || 'N/A'}</Text>
           </View>
-          <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>Paid From:</Text>
-            <Text style={styles.paymentValue}>{expense.account?.name || 'N/A'}</Text>
-          </View>
           <View style={{ ...styles.paymentRow, marginTop: 4 }}>
             <Text style={styles.paymentLabel}>Notes:</Text>
             <Text style={styles.paymentValue}>{expense.notes || 'None'}</Text>

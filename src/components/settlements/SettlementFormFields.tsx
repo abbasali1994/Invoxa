@@ -1,6 +1,10 @@
 import React from "react";
+import { useSettings } from "@/hooks/useSettings";
 
-export function SettlementFormFields({ register, rateStatus, accounts }: any) {
+export function SettlementFormFields({ register, rateStatus }: any) {
+  const { paymentMethods } = useSettings();
+  const uniqueTypes = Array.from(new Set(paymentMethods.map((m: any) => m.type)));
+
   return (
     <>
       <div className="pt-2 border-t border-neutral-800">
@@ -31,24 +35,12 @@ export function SettlementFormFields({ register, rateStatus, accounts }: any) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block font-medium mb-1">Payment Method</label>
-          <select {...register("paymentMethod")} className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500">
-            <option value="WISE">Wise</option>
-            <option value="BANK_TRANSFER">Bank Transfer</option>
-            <option value="PAYPAL">PayPal</option>
-            <option value="CRYPTO">Crypto</option>
-            <option value="STRIPE">Stripe</option>
-          </select>
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Receiving Account</label>
-          <select {...register("receivingAccountId")} className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500">
-            <option value="">None (Skip Ledger)</option>
-            {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
-        </div>
+      <div className="mb-4">
+        <label className="block font-medium mb-1">Payment Method</label>
+        <select {...register("paymentMethod")} className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500">
+          <option value="">Select Method...</option>
+          {uniqueTypes.map(t => <option key={t as string} value={t as string}>{t as string}</option>)}
+        </select>
       </div>
 
       <div>

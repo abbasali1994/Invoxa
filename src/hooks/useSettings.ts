@@ -6,12 +6,9 @@ export const TABS = ['General', 'Payments', 'Scheduler', 'Team'] as const;
 export type Tab = typeof TABS[number];
 
 const DEFAULT_PAYMENT_METHODS = [
-  { id: 'wise', name: 'Wise', type: 'Digital Wallet', builtin: true },
   { id: 'bank', name: 'Bank Transfer', type: 'Bank Transfer', builtin: true },
-  { id: 'paypal', name: 'PayPal', type: 'Digital Wallet', builtin: true },
-  { id: 'crypto', name: 'Crypto', type: 'Crypto', builtin: true },
-  { id: 'stripe', name: 'Stripe', type: 'Digital Wallet', builtin: true },
-  { id: 'upi', name: 'UPI', type: 'Digital Wallet', builtin: true },
+  { id: 'crypto', name: 'Token Transfer (Crypto)', type: 'Token Transfer (Crypto)', builtin: true },
+  { id: 'cash', name: 'Cash', type: 'Cash', builtin: true },
 ];
 
 export function useSettings() {
@@ -27,7 +24,10 @@ export function useSettings() {
 
   const [paymentMethods, setPaymentMethods] = useState<any[]>([...DEFAULT_PAYMENT_METHODS]);
   const [showAddMethod, setShowAddMethod] = useState(false);
-  const [newMethod, setNewMethod] = useState({ name: '', type: 'Bank Transfer', instructions: '' });
+  const [newMethod, setNewMethod] = useState({ 
+    name: '', type: 'Bank Transfer', instructions: '',
+    bankAccountName: '', accountNumber: '', bankName: '', ifscCode: ''
+  });
 
   useEffect(() => {
     const stored = localStorage.getItem('invoxa_settings');
@@ -44,7 +44,11 @@ export function useSettings() {
 
     const storedMethods = localStorage.getItem('invoxa_payment_methods');
     if (storedMethods) {
-      try { setPaymentMethods(JSON.parse(storedMethods)); } catch {}
+      try { 
+        const parsed = JSON.parse(storedMethods);
+        const customMethods = parsed.filter((m: any) => !m.builtin);
+        setPaymentMethods([...DEFAULT_PAYMENT_METHODS, ...customMethods]);
+      } catch {}
     }
   }, []);
 
@@ -63,7 +67,10 @@ export function useSettings() {
     const updated = [...paymentMethods, { ...newMethod, id: `custom-${Date.now()}`, builtin: false }];
     setPaymentMethods(updated);
     localStorage.setItem('invoxa_payment_methods', JSON.stringify(updated));
-    setNewMethod({ name: '', type: 'Bank Transfer', instructions: '' });
+    setNewMethod({ 
+      name: '', type: 'Bank Transfer', instructions: '',
+      bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '' 
+    });
     setShowAddMethod(false);
     toast.success('Payment method added');
   };
