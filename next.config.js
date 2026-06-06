@@ -8,6 +8,19 @@ const nextConfig = {
     return config
   },
   output: 'standalone',
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'x-pathname',
+            value: '/:path*',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig
