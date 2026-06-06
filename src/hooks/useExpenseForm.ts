@@ -41,7 +41,7 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
       expenseNumber: `EXP-${Math.floor(Math.random() * 10000)}`,
       date: new Date().toISOString().split('T')[0],
       category: "",
-      currency: "USD",
+      currency: "INR",
       isRecurring: false,
       taxRate: 0,
       lineItems: [{ description: "", hours: 1, cost: 0, amount: 0, isSection: false }]
@@ -50,14 +50,13 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
 
   const { watch } = methods;
   const watchLineItems = watch("lineItems") || [];
-  const taxRate = watch("taxRate") || 0;
 
   const subtotal = watchLineItems.reduce((sum: number, item: any) => {
     if (item.isSection) return sum;
-    return new Decimal(sum).plus(new Decimal(item.hours || 0).times(item.cost || 0)).toNumber();
+    return new Decimal(sum).plus(item.amount || 0).toNumber();
   }, 0);
 
-  const total = new Decimal(subtotal).times(1 + (taxRate / 100)).toNumber();
+  const total = subtotal;
 
   useEffect(() => {
     fetch('/api/accounts').then(res => res.json()).then(data => { if(Array.isArray(data)) setAccounts(data); }).catch(()=>{});

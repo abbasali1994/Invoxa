@@ -15,13 +15,6 @@ export function ExpensePaymentDetailsForm({ accounts }: { accounts: any[] }) {
             {['Bank Transfer', 'Cash', 'Credit Card', 'Crypto', 'UPI'].map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-neutral-300 mb-1">Paid From</label>
-          <select {...register("paidFromAccountId")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
-            <option value="">Select Account...</option>
-            {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
-        </div>
       </div>
     </div>
   );
