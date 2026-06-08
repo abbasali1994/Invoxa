@@ -21,7 +21,7 @@ export function StatCard({ title, value, subtitle, icon, trend, color, subtitleC
           {icon && <div className="text-neutral-400">{icon}</div>}
         </div>
       </div>
-      <div className={`text-2xl font-bold ${trend === 'down' ? 'text-rose-400' : ''}`}>{value}</div>
+      <div className={`text-2xl font-bold ${trend === 'down' ? 'text-rose-400' : trend === 'up' ? 'text-emerald-400' : ''}`}>{value}</div>
       {subtitle && (
         <p className={`text-xs mt-1 ${subtitleColor}`}>{subtitle}</p>
       )}

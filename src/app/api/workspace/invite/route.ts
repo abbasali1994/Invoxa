@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   })
 
   // Send email
-  const inviteLink = `${process.env.NEXTAUTH_URL}/login?invite=${token}`
+  const inviteLink = `${process.env.AUTH_URL}/login?invite=${token}`
   await sendWorkspaceInvite(
     email,
     invokerMembership.workspace.name,

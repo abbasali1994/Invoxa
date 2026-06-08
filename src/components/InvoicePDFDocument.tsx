@@ -9,7 +9,7 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
   const totalHours = lineItems.reduce((sum: number, item: any) => sum + (item.isSection ? 0 : (item.hours || 0)), 0);
   const totalAmount = lineItems.reduce((sum: number, item: any) => {
     if (item.isSection) return sum;
-    return sum + ((item.hours || 0) * (item.cost || 0));
+    return sum + (item.amount || 0);
   }, 0);
 
   return (
@@ -43,7 +43,6 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
           <View style={styles.tableHeader}>
             <Text style={styles.colDesc}>Description</Text>
             <Text style={styles.colHours}>Hours</Text>
-            <Text style={styles.colCost}>Cost</Text>
             <Text style={styles.colAmount}>Amount</Text>
           </View>
           
@@ -59,9 +58,8 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
               <View key={i} style={styles.tableRow}>
                 <Text style={styles.cellDesc}>{item.description || 'Item description'}</Text>
                 <Text style={styles.cellHours}>{item.hours || ''}</Text>
-                <Text style={styles.cellCost}>{item.cost || ''}</Text>
                 <Text style={styles.cellAmount}>
-                  ${((item.hours || 0) * (item.cost || 0)).toFixed(2)}
+                  ${(item.amount || 0).toFixed(2)}
                 </Text>
               </View>
             );
@@ -70,7 +68,6 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>TOTAL</Text>
             <Text style={styles.totalHours}>{totalHours}</Text>
-            <Text style={styles.totalAmountEmpty}></Text>
             <Text style={styles.totalAmount}>${totalAmount.toFixed(2)}</Text>
           </View>
         </View>

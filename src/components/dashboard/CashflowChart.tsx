@@ -25,12 +25,12 @@ export function CashflowChart({ data }: CashflowChartProps) {
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
             <XAxis dataKey="name" stroke="#737373" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="#737373" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
+            <YAxis stroke="#737373" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
             <RechartsTooltip
               contentStyle={{ backgroundColor: '#171717', borderColor: '#404040', color: '#fff' }}
               formatter={(value: any, name: any) => {
                 if (typeof value === 'number') {
-                  return [`$${value.toLocaleString()}`, name]
+                  return [`₹${value.toLocaleString('en-IN')}`, name]
                 }
                 return [value, name]
               }}

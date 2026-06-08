@@ -1,9 +1,10 @@
 import React from 'react';
 import { useFormContext } from "react-hook-form";
 import { ClientSelector } from "./ClientSelector";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export function InvoiceMetaForm({ clients }: { clients: any[] }) {
-  const { register } = useFormContext();
+  const { register, watch } = useFormContext();
 
   return (
     <div className="space-y-4">
@@ -15,7 +16,7 @@ export function InvoiceMetaForm({ clients }: { clients: any[] }) {
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-300 mb-1">Date</label>
-          <input type="date" {...register("date")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
+          <DatePicker {...register("date")} value={watch("date") || ""} />
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-300 mb-1">Invoice #</label>
@@ -23,7 +24,7 @@ export function InvoiceMetaForm({ clients }: { clients: any[] }) {
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-300 mb-1">Due Date</label>
-          <input type="date" {...register("dueDate")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
+          <DatePicker {...register("dueDate")} value={watch("dueDate") || ""} />
         </div>
       </div>
       <ClientSelector clients={clients} />

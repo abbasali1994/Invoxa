@@ -24,7 +24,6 @@ export const invoiceSchema = z.object({
   lineItems: z.array(z.object({
     description: z.string().min(1, "Required"),
     hours: z.number().optional(),
-    cost: z.number().optional(),
     amount: z.number().optional(),
     isSection: z.boolean().default(false)
   })).min(1, "At least one item required"),
@@ -83,7 +82,7 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
 
   const subtotal = watchLineItems?.reduce((sum: number, item: any) => {
     if (item.isSection) return sum;
-    return new Decimal(sum).plus(new Decimal(item.hours || 0).times(item.cost || 0)).toNumber();
+    return new Decimal(sum).plus(new Decimal(item.amount || 0)).toNumber();
   }, 0) || 0;
 
   useEffect(() => {

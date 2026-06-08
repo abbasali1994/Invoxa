@@ -1,7 +1,7 @@
 import React from "react";
 import { useSettings } from "@/hooks/useSettings";
-
-export function SettlementFormFields({ register, rateStatus }: any) {
+import { DatePicker } from "@/components/ui/DatePicker";
+export function SettlementFormFields({ register, rateStatus, settlementDateValue }: any) {
   const { paymentMethods } = useSettings();
   const uniqueTypes = Array.from(new Set(paymentMethods.map((m: any) => m.type)));
 
@@ -31,7 +31,7 @@ export function SettlementFormFields({ register, rateStatus }: any) {
         </div>
         <div>
           <label className="block font-medium mb-1">Settlement Date</label>
-          <input type="date" {...register("settlementDate")} className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500" />
+          <DatePicker {...register("settlementDate")} value={settlementDateValue} />
         </div>
       </div>
 

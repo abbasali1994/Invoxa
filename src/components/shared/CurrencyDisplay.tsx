@@ -11,9 +11,12 @@ export function CurrencyDisplay({ amount, currency = 'USD', size = 'md', classNa
   const safeAmount = amount || 0;
   const isUSD = currency === 'USD';
   
-  const formatted = isUSD 
+  const isINR = currency === 'INR';
+  const formatted = isUSD
     ? `$${safeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : `${currency === 'INR' ? '₹' : currency + ' '}${safeAmount.toLocaleString()}`;
+    : isINR
+      ? `₹${safeAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : `${currency} ${safeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const sizeClasses = {
     sm: 'text-sm',

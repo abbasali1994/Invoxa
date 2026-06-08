@@ -15,7 +15,7 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
       exchangeRate: existingSettlement?.exchangeRate ?? 83.5,
       paymentMethod: existingSettlement?.paymentMethod || (invoice?.paymentMethod?.toUpperCase().replace(" ", "_")) || "WISE",
       receivingAccountId: existingSettlement?.receivingAccountId || "",
-      settlementDate: toDateInputValue(existingSettlement?.settledAt),
+      settlementDate: toDateInputValue(existingSettlement?.settledAt ?? invoice?.dueDate),
       notes: existingSettlement?.notes || "",
     },
   });
@@ -67,17 +67,20 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
 
       setRateStatus("loading");
       try {
-        const res = await fetch(`https://api.frankfurter.app/${settlementDate}?from=${currency}&to=INR`);
+        const res = await fetch(`/api/exchange-rate?date=${settlementDate}&from=${currency}&to=INR`);
         if (!res.ok) throw new Error("API failed");
         const data = await res.json();
-        if (data.rates && data.rates.INR) {
-          setValue("exchangeRate", data.rates.INR);
+        if (data.rate != null && !data.fallback) {
+          setValue("exchangeRate", data.rate);
           setRateStatus("live");
+        } else if (data.rate != null) {
+          setValue("exchangeRate", data.rate);
+          setRateStatus("fallback");
         } else {
           throw new Error("No rate returned");
         }
       } catch {
-        setValue("exchangeRate", 83.5); // Fallback
+        setValue("exchangeRate", 83.5);
         setRateStatus("fallback");
       } finally {
         setLastFetchedDate(settlementDate);
@@ -89,6 +92,7 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
 
   const actualInrReceived = parseFloat(watch("actualInrReceived") as string) || 0;
   const exchangeRate = watch("exchangeRate") || 0;
+  const settlementDateValue = watch("settlementDate") || "";
 
   const expectedINR = (invoice?.total * exchangeRate) || 0;
   const settlementGap = expectedINR - actualInrReceived;
@@ -126,6 +130,7 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
     actualInrReceived,
     expectedINR,
     settlementGap,
+    settlementDateValue,
     onSubmit: handleSubmit(onSubmit),
   };
 }

@@ -23,7 +23,7 @@ export function RecordSettlementModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{existingSettlement ? "Edit Settlement" : "Record Settlement"}</DialogTitle>
         </DialogHeader>

@@ -4,24 +4,20 @@ import { getCurrentWorkspaceId } from '@/lib/workspace'
 
 export const dynamic = 'force-dynamic'
 
-function getPeriodDates(period: string | null): { start: Date, end: Date } {
+function parseDateRange(from: string | null, to: string | null): { start: Date; end: Date } {
+  if (from && to) {
+    return {
+      start: new Date(from + 'T00:00:00'),
+      end: new Date(to + 'T23:59:59'),
+    };
+  }
+  // Default: current Indian FY (April 1 → today)
   const now = new Date();
-  if (period && period.match(/^\d{4}-\d{2}$/)) {
-    const [year, month] = period.split('-').map(Number);
-    const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
-    const end = new Date(year, month, 1, 0, 0, 0, 0); // start of next month
-    return { start, end };
-  }
-  
-  // Default to current-fy (April 1st to now)
-  const currentMonth = now.getMonth(); // 0-11
-  let startYear = now.getFullYear();
-  if (currentMonth < 3) { // Jan, Feb, Mar are part of previous year's FY
-    startYear -= 1;
-  }
-  const start = new Date(startYear, 3, 1, 0, 0, 0, 0); // April 1st
-  const end = new Date(now);
-  return { start, end };
+  const fyStartYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+  return {
+    start: new Date(fyStartYear, 3, 1, 0, 0, 0, 0),
+    end: now,
+  };
 }
 
 export async function GET(req: NextRequest) {
@@ -30,61 +26,72 @@ export async function GET(req: NextRequest) {
     if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
 
     const url = new URL(req.url);
-    const invoicedPeriod = url.searchParams.get('invoicedPeriod');
-    const realizedPeriod = url.searchParams.get('realizedPeriod');
+    const { start, end } = parseDateRange(url.searchParams.get('from'), url.searchParams.get('to'));
 
-    const invoicedDates = getPeriodDates(invoicedPeriod);
-    const realizedDates = getPeriodDates(realizedPeriod);
-
-    const [invoicedThisMonth, realizedINR, pendingInvoices, outstandingReceivables, settlementGap] =
+    const [invoicedThisMonth, realizedINR, pendingInvoices, expenses, fxData] =
       await Promise.all([
         prisma.invoice.aggregate({
-          where: { 
-            workspaceId, 
-            createdAt: { gte: invoicedDates.start, lt: invoicedDates.end }, 
-            deletedAt: null 
+          where: {
+            workspaceId,
+            createdAt: { gte: start, lte: end },
+            deletedAt: null,
           },
           _sum: { total: true },
         }).catch(() => ({ _sum: { total: 0 } })),
 
         prisma.settlementRecord.aggregate({
-          where: { 
-            workspaceId, 
+          where: {
+            workspaceId,
             status: { in: ['SETTLED', 'PARTIAL'] },
-            settledAt: { gte: realizedDates.start, lt: realizedDates.end },
-            paymentMethod: { in: ['BANK_TRANSFER', 'WISE', 'STRIPE', 'PAYPAL', 'CASH'] }
+            settledAt: { gte: start, lte: end },
           },
           _sum: { actualInrReceived: true },
         }).catch(() => ({ _sum: { actualInrReceived: 0 } })),
 
         prisma.invoice.findMany({
-          where: { workspaceId, status: { in: ['SENT', 'OVERDUE'] }, deletedAt: null },
+          where: {
+            workspaceId,
+            status: { in: ['SENT', 'OVERDUE'] },
+            createdAt: { gte: start, lte: end },
+            deletedAt: null,
+          },
           select: { total: true },
         }).catch(() => []),
 
-        prisma.invoice.aggregate({
-          where: { workspaceId, status: 'OVERDUE', deletedAt: null },
-          _sum: { total: true },
-        }).catch(() => ({ _sum: { total: 0 } })),
+        prisma.expense.findMany({
+          where: {
+            workspaceId,
+            date: { gte: start, lte: end },
+          },
+          select: { amount: true, currency: true },
+        }).catch(() => []),
 
-        prisma.settlementRecord.aggregate({
-          where: { workspaceId },
-          _sum: { settlementGap: true },
-        }).catch(() => ({ _sum: { settlementGap: 0 } })),
-      ])
+        fetch('https://api.frankfurter.app/latest?from=USD&to=INR')
+          .then(r => r.json())
+          .catch(() => null),
+      ]);
+
+    const usdToInr: number = fxData?.rates?.INR ?? 83.5;
+    const pendingUSD = pendingInvoices.reduce((sum, i) => sum + i.total, 0);
+    const totalExpensesINR = expenses.reduce((sum, e) => {
+      return sum + (e.currency === 'INR' ? e.amount : e.amount * usdToInr);
+    }, 0);
+    const totalRealizedINR = realizedINR._sum.actualInrReceived || 0;
 
     return NextResponse.json({
       totalInvoicedUSD: invoicedThisMonth._sum.total || 0,
-      totalRealizedINR: realizedINR._sum.actualInrReceived || 0,
+      totalRealizedINR,
+      totalExpensesINR,
+      realizedProfitINR: totalRealizedINR - totalExpensesINR,
       pendingSettlements: {
         count: pendingInvoices.length,
-        usdValue: pendingInvoices.reduce((sum, i) => sum + i.total, 0),
+        usdValue: pendingUSD,
+        inrValue: pendingUSD * usdToInr,
+        usdToInrRate: usdToInr,
       },
-      outstandingReceivables: outstandingReceivables._sum.total || 0,
-      totalSettlementGap: settlementGap._sum.settlementGap || 0,
-    })
+    });
   } catch (error) {
-    console.error('Dashboard stats error:', error)
-    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 })
+    console.error('Dashboard stats error:', error);
+    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
   }
 }
