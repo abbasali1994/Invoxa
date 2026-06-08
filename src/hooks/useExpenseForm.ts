@@ -48,7 +48,7 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
     }
   });
 
-  const { watch } = methods;
+  const { watch, reset, getValues } = methods;
   const watchLineItems = watch("lineItems") || [];
 
   const subtotal = watchLineItems.reduce((sum: number, item: any) => {
@@ -61,6 +61,34 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
   useEffect(() => {
     fetch('/api/accounts').then(res => res.json()).then(data => { if(Array.isArray(data)) setAccounts(data); }).catch(()=>{});
   }, []);
+
+  useEffect(() => {
+    if (isEdit || initialData) return;
+    const aiDataStr = sessionStorage.getItem('ai_expense_data');
+    if (aiDataStr) {
+      try {
+        const aiData = JSON.parse(aiDataStr);
+        const amount = parseFloat(aiData.amount) || 0;
+        reset({
+          ...getValues(),
+          vendor: aiData.vendor || "",
+          date: aiData.date || new Date().toISOString().split('T')[0],
+          category: aiData.category || "",
+          lineItems: [{
+            description: aiData.category || "Expense Item",
+            hours: 1,
+            cost: amount,
+            amount: amount,
+            isSection: false
+          }]
+        });
+      } catch (e) {
+        console.error("Failed to parse AI data", e);
+      } finally {
+        sessionStorage.removeItem('ai_expense_data');
+      }
+    }
+  }, [isEdit, initialData, reset, getValues]);
 
   const onSubmit = async (data: ExpenseFormValues, status: 'SAVED' | 'DRAFT' = 'SAVED') => {
     setIsSaving(true);
