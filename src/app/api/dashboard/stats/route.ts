@@ -51,7 +51,8 @@ export async function GET(req: NextRequest) {
           where: { 
             workspaceId, 
             status: { in: ['SETTLED', 'PARTIAL'] },
-            settledAt: { gte: realizedDates.start, lt: realizedDates.end }
+            settledAt: { gte: realizedDates.start, lt: realizedDates.end },
+            paymentMethod: { in: ['BANK_TRANSFER', 'WISE', 'STRIPE', 'PAYPAL', 'CASH'] }
           },
           _sum: { actualInrReceived: true },
         }).catch(() => ({ _sum: { actualInrReceived: 0 } })),
