@@ -6,10 +6,11 @@ import { useExpenses } from "@/hooks/useExpenses";
 import { ExpenseTabBar } from "@/components/expenses/ExpenseTabBar";
 import { ExpenseTable } from "@/components/expenses/ExpenseTable";
 import { UploadExpenseButton } from "@/components/expenses/UploadExpenseButton";
+import { DateRangePicker } from "@/components/ui/DateRangePicker";
 
 export default function ExpensesPage() {
   const router = useRouter();
-  const { expenses, counts, activeTab, setActiveTab, handleDelete, handleShare } = useExpenses();
+  const { expenses, counts, activeTab, setActiveTab, handleDelete, handleShare, dateRange, setDateRange } = useExpenses();
 
   return (
     <div className="space-y-6">
@@ -18,7 +19,8 @@ export default function ExpensesPage() {
           <h2 className="text-2xl font-bold tracking-tight">Expenses</h2>
           <p className="text-neutral-400">Track and categorize outgoing payments.</p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <DateRangePicker value={dateRange} onChange={setDateRange} />
           <UploadExpenseButton />
           <button onClick={() => router.push('/expenses/new')} className="flex items-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
             <Plus className="w-4 h-4 mr-2" /> Add Expense

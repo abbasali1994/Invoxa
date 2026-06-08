@@ -31,9 +31,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const existingInvoice = await prisma.invoice.findFirst({ where: { id, workspaceId, deletedAt: null } });
     if (!existingInvoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+    // Strip fields not present in the Invoice model
+    const { date, paymentTerms, clientName, client, settlements, createdAt, updatedAt, deletedAt, workspaceId: _ws, createdById, ...updateData } = body;
+
+    if (updateData.dueDate) updateData.dueDate = new Date(updateData.dueDate);
+
     const invoice = await prisma.invoice.update({
       where: { id },
-      data: body
+      data: updateData,
     });
 
     if (body.status === 'PAID') {

@@ -1,20 +1,22 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { defaultDateRange, type DateRange } from "@/components/ui/DateRangePicker";
 
 export function useExpenses() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [counts, setCounts] = useState({ all: 0, saved: 0, draft: 0, recurring: 0, overdue: 0 });
   const [activeTab, setActiveTab] = useState<'all' | 'saved' | 'draft' | 'recurring' | 'overdue'>('all');
+  const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange);
 
-  const fetchExpenses = (tab: string) => {
-    let query = '';
-    if (tab === 'saved') query = '?status=SAVED';
-    if (tab === 'draft') query = '?status=DRAFT';
-    if (tab === 'recurring') query = '?isRecurring=true';
-    if (tab === 'overdue') query = '?isRecurring=true';
+  const fetchExpenses = (tab: string, range: DateRange) => {
+    const params = new URLSearchParams({ from: range.from, to: range.to });
+    if (tab === 'saved') params.set('status', 'SAVED');
+    if (tab === 'draft') params.set('status', 'DRAFT');
+    if (tab === 'recurring') params.set('isRecurring', 'true');
+    if (tab === 'overdue') params.set('isRecurring', 'true');
 
-    fetch(`/api/expenses${query}`).then(res=>res.json()).then(data => {if(Array.isArray(data)) setExpenses(data);});
+    fetch(`/api/expenses?${params}`).then(res=>res.json()).then(data => {if(Array.isArray(data)) setExpenses(data);});
   };
 
   const fetchCounts = () => {
@@ -22,9 +24,9 @@ export function useExpenses() {
   };
 
   useEffect(() => {
-    fetchExpenses(activeTab);
+    fetchExpenses(activeTab, dateRange);
     fetchCounts();
-  }, [activeTab]);
+  }, [activeTab, dateRange]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this expense? This cannot be undone.')) return;
@@ -46,5 +48,5 @@ export function useExpenses() {
     }
   };
 
-  return { expenses, counts, activeTab, setActiveTab, handleDelete, handleShare };
+  return { expenses, counts, activeTab, setActiveTab, handleDelete, handleShare, dateRange, setDateRange };
 }

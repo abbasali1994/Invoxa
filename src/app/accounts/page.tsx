@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Building2, Coins, Banknote } from 'lucide-react'
 import { AccountsBarChart } from '@/components/accounts/AccountsBarChart'
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton'
+import { DateRangePicker, defaultDateRange, type DateRange } from '@/components/ui/DateRangePicker'
 
 interface AccountSummary {
   cards: { bankTotal: number; cryptoUnsettled: number; cashTotal: number }
@@ -21,15 +22,21 @@ const cardConfig = [
     icon: Building2,
     accent: '#6366f1',
     method: 'BANK_TRANSFER',
+    currency: 'INR' as const,
+    link: '/settlements?method=BANK_TRANSFER',
+    linkLabel: 'View Settlements →',
   },
   {
     key: 'cryptoUnsettled' as const,
-    title: 'Crypto Holdings',
-    subtitle: 'Received — not yet settled',
+    title: 'Crypto Invoices',
+    subtitle: 'Sent — not yet settled',
     icon: Coins,
     accent: '#fbbf24',
     method: 'CRYPTO',
     badge: 'Unsettled',
+    currency: 'USD' as const,
+    link: '/invoices',
+    linkLabel: 'View Invoices →',
   },
   {
     key: 'cashTotal' as const,
@@ -38,6 +45,9 @@ const cardConfig = [
     icon: Banknote,
     accent: '#34d399',
     method: 'CASH',
+    currency: 'INR' as const,
+    link: '/settlements?method=CASH',
+    linkLabel: 'View Settlements →',
   },
 ]
 
@@ -45,14 +55,17 @@ export default function AccountsPage() {
   const [data, setData] = useState<AccountSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange)
 
   useEffect(() => {
-    fetch('/api/accounts/summary')
+    setLoading(true)
+    const { from, to } = dateRange
+    fetch(`/api/accounts/summary?from=${from}&to=${to}`)
       .then(r => r.json())
       .then(setData)
       .catch(() => setError('Failed to load account data'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [dateRange])
 
   if (loading) return <LoadingSkeleton rows={4} />
   if (error) return <p style={{ color: '#ef4444', padding: '2rem' }}>{error}</p>
@@ -60,13 +73,16 @@ export default function AccountsPage() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'white', margin: 0 }}>
-          Financial Accounts
-        </h1>
-        <p style={{ color: '#737373', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
-          Receipts by payment method across all settlements
-        </p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'white', margin: 0 }}>
+            Financial Accounts
+          </h1>
+          <p style={{ color: '#737373', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+            Receipts by payment method across all settlements
+          </p>
+        </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* 3 Account Cards */}
@@ -137,11 +153,13 @@ export default function AccountsPage() {
                 margin: '0 0 1rem',
                 letterSpacing: '-0.02em',
               }}>
-                ₹{value.toLocaleString('en-IN')}
+                {card.currency === 'USD'
+                  ? `$${value.toLocaleString('en-US')}`
+                  : `₹${value.toLocaleString('en-IN')}`}
               </p>
 
               <a
-                href={`/settlements?method=${card.method}`}
+                href={card.link}
                 style={{
                   fontSize: '0.75rem',
                   color: '#737373',
@@ -153,7 +171,7 @@ export default function AccountsPage() {
                   paddingTop: '0.75rem',
                 }}
               >
-                View Settlements →
+                {card.linkLabel}
               </a>
             </div>
           )

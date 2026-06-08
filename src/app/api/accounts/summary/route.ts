@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentWorkspaceId } from '@/lib/workspace'
 
 function getCurrentFYMonths() {
   const now = new Date()
@@ -36,9 +37,20 @@ const BANK_METHODS = ['BANK_TRANSFER', 'WISE', 'STRIPE', 'PAYPAL']
 const CRYPTO_METHODS = ['CRYPTO']
 const CASH_METHODS = ['CASH']
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const fromParam = searchParams.get('from')
+    const toParam = searchParams.get('to')
+    const dateFilter = fromParam && toParam ? {
+      gte: new Date(fromParam + 'T00:00:00'),
+      lte: new Date(toParam + 'T23:59:59'),
+    } : undefined
+
+    const workspaceId = await getCurrentWorkspaceId()
+
     const settlements = await prisma.settlementRecord.findMany({
+      where: dateFilter ? { settledAt: dateFilter } : undefined,
       select: {
         paymentMethod: true,
         actualInrReceived: true,
@@ -52,13 +64,22 @@ export async function GET() {
       .filter(s => BANK_METHODS.includes(s.paymentMethod?.toUpperCase() || ''))
       .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)
 
-    const cryptoUnsettled = settlements
-      .filter(s => CRYPTO_METHODS.includes(s.paymentMethod?.toUpperCase() || '') && s.status !== 'SETTLED')
-      .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)
-
     const cashTotal = settlements
       .filter(s => CASH_METHODS.includes(s.paymentMethod?.toUpperCase() || ''))
       .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)
+
+    // Crypto: invoices sent/overdue with CRYPTO payment method (USD total)
+    const cryptoInvoices = await prisma.invoice.findMany({
+      where: {
+        ...(workspaceId ? { workspaceId } : {}),
+        paymentMethod: { in: CRYPTO_METHODS },
+        status: { in: ['SENT', 'OVERDUE'] },
+        deletedAt: null,
+        ...(dateFilter ? { createdAt: dateFilter } : {}),
+      },
+      select: { total: true },
+    })
+    const cryptoUnsettled = cryptoInvoices.reduce((sum, inv) => sum + inv.total, 0)
 
     // Yearly chart — current FY
     const months = getCurrentFYMonths()

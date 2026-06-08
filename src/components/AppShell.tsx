@@ -21,8 +21,6 @@ const navItems = [
 
 const accountingItems = [
   { href: "/ledger", label: "Ledger", icon: BookOpen },
-  { href: "/ledger/trial-balance", label: "Trial Balance", icon: PieChart, indent: true },
-  { href: "/reports", label: "Reports", icon: BarChart2 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

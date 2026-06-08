@@ -103,6 +103,8 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const status = url.searchParams.get('status');
     const isRecurring = url.searchParams.get('isRecurring') === 'true';
+    const from = url.searchParams.get('from');
+    const to = url.searchParams.get('to');
 
     let where: any = { deletedAt: null, workspaceId };
 
@@ -110,6 +112,10 @@ export async function GET(request: NextRequest) {
       where.isRecurring = true;
     } else if (status && status !== 'active') {
       where.status = status;
+    }
+
+    if (from && to) {
+      where.date = { gte: new Date(from), lte: new Date(to) };
     }
 
     const expenses = await prisma.expense.findMany({

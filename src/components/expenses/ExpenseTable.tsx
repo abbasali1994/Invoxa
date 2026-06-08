@@ -1,11 +1,60 @@
-import React from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Edit2, Trash2, Receipt, Eye, MessageCircle, Send, Mail, Link as LinkIcon } from "lucide-react";
+import { MoreVertical, Edit2, Trash2, Receipt, Eye, MessageCircle, Send, Mail, Link as LinkIcon, ChevronUp, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+
+type SortField = 'date' | 'vendor' | 'amount' | null;
+type SortDirection = 'asc' | 'desc' | null;
 
 export function ExpenseTable({ expenses, handleDelete, handleShare }: { expenses: any[], handleDelete: (id: string) => void, handleShare: (expense: any, type: string) => void }) {
   const router = useRouter();
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSort = (field: 'date' | 'vendor' | 'amount') => {
+    if (sortField === field) {
+      if (field === 'vendor') {
+        if (sortDirection === 'asc') setSortDirection('desc');
+        else if (sortDirection === 'desc') { setSortDirection(null); setSortField(null); }
+      } else {
+        if (sortDirection === 'desc') setSortDirection('asc');
+        else if (sortDirection === 'asc') { setSortDirection(null); setSortField(null); }
+      }
+    } else {
+      setSortField(field);
+      setSortDirection(field === 'vendor' ? 'asc' : 'desc');
+    }
+  };
+
+  const sortedExpenses = [...expenses].sort((a, b) => {
+    if (!sortField || !sortDirection) return 0;
+
+    if (sortField === 'vendor') {
+      const aName = a.vendor || '';
+      const bName = b.vendor || '';
+      return sortDirection === 'asc' ? aName.localeCompare(bName) : bName.localeCompare(aName);
+    }
+
+    if (sortField === 'date') {
+      const aDate = new Date(a.date || 0).getTime();
+      const bDate = new Date(b.date || 0).getTime();
+      return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
+    }
+
+    if (sortField === 'amount') {
+      const aAmt = a.amount || 0;
+      const bAmt = b.amount || 0;
+      return sortDirection === 'asc' ? aAmt - bAmt : bAmt - aAmt;
+    }
+
+    return 0;
+  });
+
+  const renderSortIcon = (field: 'date' | 'vendor' | 'amount') => {
+    if (sortField !== field) return <ChevronDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />;
+    return sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-indigo-400" /> : <ChevronDown className="w-3 h-3 text-indigo-400" />;
+  };
 
   const renderNotesPreview = (expense: any) => {
     const text = expense.notes || (Array.isArray(expense.lineItems) && expense.lineItems[0] ? expense.lineItems[0].description : '');
@@ -18,16 +67,28 @@ export function ExpenseTable({ expenses, handleDelete, handleShare }: { expenses
       <table className="w-full text-sm text-left">
         <thead className="text-xs uppercase bg-neutral-950/30 text-neutral-500 border-b border-neutral-800">
           <tr>
-            <th className="px-5 py-3 font-medium">Date</th>
-            <th className="px-5 py-3 font-medium">Vendor</th>
+            <th className="px-5 py-3 font-medium">
+              <button onClick={() => handleSort('date')} className="flex items-center gap-1 group hover:text-neutral-300 transition-colors">
+                Date {renderSortIcon('date')}
+              </button>
+            </th>
+            <th className="px-5 py-3 font-medium">
+              <button onClick={() => handleSort('vendor')} className="flex items-center gap-1 group hover:text-neutral-300 transition-colors">
+                Vendor {renderSortIcon('vendor')}
+              </button>
+            </th>
             <th className="px-5 py-3 font-medium">Category</th>
             <th className="px-5 py-3 font-medium">Notes/Description</th>
-            <th className="px-5 py-3 font-medium text-right">Amount</th>
+            <th className="px-5 py-3 font-medium text-right">
+              <button onClick={() => handleSort('amount')} className="flex items-center gap-1 ml-auto group hover:text-neutral-300 transition-colors">
+                Amount {renderSortIcon('amount')}
+              </button>
+            </th>
             <th className="px-5 py-3 font-medium text-right w-16"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-800">
-          {expenses.map(e => (
+          {sortedExpenses.map(e => (
             <tr key={e.id} onClick={() => router.push(`/expenses/${e.id}`)} className="hover:bg-neutral-800/30 transition-colors cursor-pointer group">
               <td className="px-5 py-4 text-neutral-400">{format(new Date(e.date), 'MMM d, yyyy')}</td>
               <td className="px-5 py-4 font-medium flex items-center gap-2">
