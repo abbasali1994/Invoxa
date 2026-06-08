@@ -1,7 +1,15 @@
-import { StyleSheet } from '@react-pdf/renderer';
+import { StyleSheet, Font } from '@react-pdf/renderer';
+
+Font.register({
+  family: 'Roboto',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf' },
+    { src: 'https://fonts.gstatic.com/s/roboto/v20/KFOlCnqEu92Fr1MmWUlvAx05IsDqlA.ttf', fontWeight: 'bold' }
+  ]
+});
 
 export const expenseStyles = StyleSheet.create({
-  page: { padding: 40, fontFamily: 'Helvetica', fontSize: 10, color: '#333' },
+  page: { padding: 40, fontFamily: 'Roboto', fontSize: 10, color: '#333' },
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 },
   title: { fontSize: 20, fontWeight: 'bold' },
   companyName: { fontSize: 14, fontWeight: 'bold' },
@@ -14,10 +22,9 @@ export const expenseStyles = StyleSheet.create({
   sectionTitle: { fontSize: 10, fontWeight: 'bold', borderBottom: '1pt solid #000', paddingBottom: 4, marginBottom: 10, marginTop: 20 },
   tableHeader: { flexDirection: 'row', borderBottom: '1pt solid #000', paddingBottom: 4, marginBottom: 4 },
   tableRow: { flexDirection: 'row', borderBottom: '1pt solid #eee', paddingVertical: 4 },
-  colDesc: { flex: 4 },
+  colDesc: { flex: 5 },
   colQty: { flex: 1, textAlign: 'center' },
-  colRate: { flex: 1, textAlign: 'center' },
-  colAmt: { flex: 1, textAlign: 'right' },
+  colAmt: { flex: 2, textAlign: 'right' },
   tableRowSection: { flexDirection: 'row', borderBottom: '1pt solid #eee', paddingVertical: 4, backgroundColor: '#f9f9f9' },
   sectionText: { fontWeight: 'bold', color: '#111' },
   totals: { marginTop: 10, alignSelf: 'flex-end', width: 200 },

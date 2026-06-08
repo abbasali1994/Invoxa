@@ -4,6 +4,8 @@ import "./globals.css";
 import { CommandPalette } from "@/components/CommandPalette";
 import { Toaster } from "sonner";
 import { SessionProvider } from "@/components/SessionProvider";
+import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { NavigationArrows } from "@/components/NavigationArrows";
 import { AppShell } from "@/components/AppShell";
 import { headers } from "next/headers";
 

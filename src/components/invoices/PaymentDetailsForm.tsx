@@ -1,16 +1,23 @@
 import React from 'react';
 import { useFormContext } from "react-hook-form";
+import { useSettings } from "@/hooks/useSettings";
 
 export function PaymentDetailsForm() {
-  const { register, watch } = useFormContext();
-  const isCrypto = watch("paymentMethod") === "Crypto";
+  const { register, setValue, watch } = useFormContext();
+  const { paymentMethods } = useSettings();
+  
+  const paymentMethodType = watch("paymentMethod");
+  const uniqueTypes = Array.from(new Set(paymentMethods.map(m => m.type)));
+  const savedAccounts = paymentMethods.filter(m => m.type === paymentMethodType && !(m.builtin && m.name === m.type));
+  
+  const hideBankFields = paymentMethodType === 'Token Transfer (Crypto)';
 
   return (
     <div className="pt-4 border-t border-neutral-800 space-y-4">
       <h3 className="text-lg font-medium border-b border-neutral-800 pb-2">Invoice Address & Payment Details</h3>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className={isCrypto ? "col-span-2" : ""}>
+        <div className={hideBankFields ? "col-span-2" : ""}>
           <label className="block text-sm font-medium text-neutral-300 mb-1">Payment Method</label>
           <select {...register("paymentMethod")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
             <option value="">Select Method...</option>
@@ -19,7 +26,7 @@ export function PaymentDetailsForm() {
           </select>
         </div>
 
-        {isCrypto ? (
+        {hideBankFields ? (
           <>
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-1">Wallet Address</label>

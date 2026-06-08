@@ -46,8 +46,8 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
       currency: "USD",
       senderName: "Abbas Ali Lokhandwala",
       date: new Date().toISOString().split('T')[0],
-      invoiceNumber: "#2604", 
-      lineItems: [{ description: "", hours: 0, amount: 0, isSection: false }]
+      invoiceNumber: "", // Will be fetched if new
+      lineItems: [{ description: "", hours: 0, cost: 0, amount: 0, isSection: false }]
     }
   });
 
@@ -57,11 +57,15 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
   const watchDate = watch("date");
 
   useEffect(() => {
-    if (!watchDate) return;
-    const d = new Date(watchDate);
-    d.setDate(d.getDate() + 2);
-    setValue("dueDate", d.toISOString().split("T")[0]);
-  }, [watchDate, setValue]);
+    const currentInvoiceNumber = getValues("invoiceNumber");
+    if (watchDate && currentInvoiceNumber && currentInvoiceNumber.startsWith('INV-')) {
+      const year = watchDate.split('-')[0];
+      const parts = currentInvoiceNumber.split('-');
+      if (parts.length === 3 && parts[1] !== year && year.length === 4) {
+        setValue("invoiceNumber", `INV-${year}-${parts[2]}`);
+      }
+    }
+  }, [watchDate, setValue, getValues]);
 
   useEffect(() => {
     const client = clients.find(c => c.id === watchClientId);
@@ -85,7 +89,13 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
     fetch('/api/clients').then(res => res.json()).then(data => {
       if(Array.isArray(data)) setClients(data);
     }).catch(() => toast.error("Failed to load clients"));
-  }, []);
+
+    if (!isEdit && !initialData?.invoiceNumber) {
+      fetch('/api/invoices/counts').then(res => res.json()).then(data => {
+        if (data.nextNumber) setValue("invoiceNumber", data.nextNumber);
+      }).catch(() => {});
+    }
+  }, [isEdit, initialData, setValue]);
 
   useEffect(() => {
     if (initialClientId) setValue('clientId', initialClientId);

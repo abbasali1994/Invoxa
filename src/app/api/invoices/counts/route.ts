@@ -8,12 +8,13 @@ export async function GET(request: NextRequest) {
     const workspaceId = await getCurrentWorkspaceId();
     if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
 
-    const [allCount, sentCount, paidCount, overdueCount, draftCount] = await Promise.all([
+    const [allCount, sentCount, paidCount, overdueCount, draftCount, totalCount] = await Promise.all([
       prisma.invoice.count({ where: { deletedAt: null, workspaceId } }),
       prisma.invoice.count({ where: { deletedAt: null, status: 'SENT', workspaceId } }),
       prisma.invoice.count({ where: { deletedAt: null, status: 'PAID', workspaceId } }),
       prisma.invoice.count({ where: { deletedAt: null, status: 'OVERDUE', workspaceId } }),
       prisma.invoice.count({ where: { deletedAt: null, status: 'DRAFT', workspaceId } }),
+      prisma.invoice.count({ where: { workspaceId } }),
     ]);
 
     return NextResponse.json({
@@ -21,7 +22,8 @@ export async function GET(request: NextRequest) {
       sent: sentCount,
       paid: paidCount,
       overdue: overdueCount,
-      draft: draftCount
+      draft: draftCount,
+      nextNumber: `INV-${new Date().getFullYear()}-${String(totalCount + 1).padStart(4, '0')}`
     });
   } catch (error) {
     console.error('Error fetching invoice counts:', error);

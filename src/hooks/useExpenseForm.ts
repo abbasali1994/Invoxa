@@ -41,27 +41,54 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
       expenseNumber: `EXP-${Math.floor(Math.random() * 10000)}`,
       date: new Date().toISOString().split('T')[0],
       category: "",
-      currency: "USD",
+      currency: "INR",
       isRecurring: false,
       taxRate: 0,
       lineItems: [{ description: "", hours: 1, cost: 0, amount: 0, isSection: false }]
     }
   });
 
-  const { watch } = methods;
+  const { watch, reset, getValues } = methods;
   const watchLineItems = watch("lineItems") || [];
-  const taxRate = watch("taxRate") || 0;
 
   const subtotal = watchLineItems.reduce((sum: number, item: any) => {
     if (item.isSection) return sum;
-    return new Decimal(sum).plus(new Decimal(item.hours || 0).times(item.cost || 0)).toNumber();
+    return new Decimal(sum).plus(item.amount || 0).toNumber();
   }, 0);
 
-  const total = new Decimal(subtotal).times(1 + (taxRate / 100)).toNumber();
+  const total = subtotal;
 
   useEffect(() => {
     fetch('/api/accounts').then(res => res.json()).then(data => { if(Array.isArray(data)) setAccounts(data); }).catch(()=>{});
   }, []);
+
+  useEffect(() => {
+    if (isEdit || initialData) return;
+    const aiDataStr = sessionStorage.getItem('ai_expense_data');
+    if (aiDataStr) {
+      try {
+        const aiData = JSON.parse(aiDataStr);
+        const amount = parseFloat(aiData.amount) || 0;
+        reset({
+          ...getValues(),
+          vendor: aiData.vendor || "",
+          date: aiData.date || new Date().toISOString().split('T')[0],
+          category: aiData.category || "",
+          lineItems: [{
+            description: aiData.category || "Expense Item",
+            hours: 1,
+            cost: amount,
+            amount: amount,
+            isSection: false
+          }]
+        });
+      } catch (e) {
+        console.error("Failed to parse AI data", e);
+      } finally {
+        sessionStorage.removeItem('ai_expense_data');
+      }
+    }
+  }, [isEdit, initialData, reset, getValues]);
 
   const onSubmit = async (data: ExpenseFormValues, status: 'SAVED' | 'DRAFT' = 'SAVED') => {
     setIsSaving(true);

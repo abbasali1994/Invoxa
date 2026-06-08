@@ -21,7 +21,7 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
           <View style={styles.metaTable}>
             <View style={[styles.metaRow, styles.metaRowTop]}>
               <Text style={styles.metaLabel}>Date</Text>
-              <Text style={styles.metaValue}>{data.date ? formatDateDDMMYYYY(data.date) : '[date]'}</Text>
+              <Text style={styles.metaValue}>{(data.date || data.createdAt) ? formatDateDDMMYYYY(data.date || data.createdAt) : '[date]'}</Text>
             </View>
             <View style={styles.metaRow}>
               <Text style={styles.metaLabel}>Invoice #</Text>

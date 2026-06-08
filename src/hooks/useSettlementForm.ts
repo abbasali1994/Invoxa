@@ -41,7 +41,7 @@ export function useSettlementForm(invoice: any, onSaved: () => void, existingSet
           setValue("receivingAccountId", data[0].id);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     if (existingSettlement && lastFetchedDate === null) {
       setValue("actualInrReceived", existingSettlement.actualInrReceived || "");

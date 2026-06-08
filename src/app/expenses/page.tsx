@@ -5,6 +5,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import { useExpenses } from "@/hooks/useExpenses";
 import { ExpenseTabBar } from "@/components/expenses/ExpenseTabBar";
 import { ExpenseTable } from "@/components/expenses/ExpenseTable";
+import { UploadExpenseButton } from "@/components/expenses/UploadExpenseButton";
 
 export default function ExpensesPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function ExpensesPage() {
           <p className="text-neutral-400">Track and categorize outgoing payments.</p>
         </div>
         <div className="flex space-x-3">
+          <UploadExpenseButton />
           <button onClick={() => router.push('/expenses/new')} className="flex items-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
             <Plus className="w-4 h-4 mr-2" /> Add Expense
           </button>

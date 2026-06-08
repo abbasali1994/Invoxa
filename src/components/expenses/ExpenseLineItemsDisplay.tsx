@@ -1,4 +1,5 @@
 import React from "react";
+import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 
 export function ExpenseLineItemsDisplay({ expense }: { expense: any }) {
   const lineItems = Array.isArray(expense.lineItems) ? expense.lineItems : [];
@@ -10,7 +11,6 @@ export function ExpenseLineItemsDisplay({ expense }: { expense: any }) {
           <tr>
             <th className="px-5 py-3 font-medium">Description</th>
             <th className="px-5 py-3 font-medium text-right">Qty</th>
-            <th className="px-5 py-3 font-medium text-right">Rate</th>
             <th className="px-5 py-3 font-medium text-right">Amount</th>
           </tr>
         </thead>
@@ -23,8 +23,7 @@ export function ExpenseLineItemsDisplay({ expense }: { expense: any }) {
               <tr key={i}>
                 <td className="px-5 py-4 text-neutral-300">{item.description}</td>
                 <td className="px-5 py-4 text-right text-neutral-400">{item.hours || item.qty || 0}</td>
-                <td className="px-5 py-4 text-right text-neutral-400">{item.cost || item.rate || 0}</td>
-                <td className="px-5 py-4 text-right font-medium text-white">${Number(item.amount || 0).toFixed(2)}</td>
+                <td className="px-5 py-4 text-right font-medium text-white"><CurrencyDisplay amount={item.amount} currency={expense.currency} size="sm" /></td>
               </tr>
             );
           })}
@@ -32,9 +31,8 @@ export function ExpenseLineItemsDisplay({ expense }: { expense: any }) {
       </table>
       
       <div className="p-5 border-t border-neutral-800 bg-neutral-950/30 flex flex-col items-end space-y-2 text-sm">
-        <div className="flex justify-between w-48 text-neutral-400"><span>Subtotal:</span><span>${Number(expense.subtotal || 0).toFixed(2)}</span></div>
-        <div className="flex justify-between w-48 text-neutral-400"><span>Tax ({expense.taxRate || 0}%):</span><span>${(Number(expense.total || 0) - Number(expense.subtotal || 0)).toFixed(2)}</span></div>
-        <div className="flex justify-between w-48 text-lg font-bold text-white pt-2 border-t border-neutral-800"><span>Total:</span><span>${Number(expense.total || expense.amount || 0).toFixed(2)}</span></div>
+        <div className="flex justify-between w-48 text-neutral-400"><span>Subtotal:</span><CurrencyDisplay amount={expense.subtotal} currency={expense.currency} size="sm" /></div>
+        <div className="flex justify-between w-48 text-lg font-bold text-white pt-2 border-t border-neutral-800"><span>Total:</span><CurrencyDisplay amount={expense.total || expense.amount} currency={expense.currency} size="lg" /></div>
       </div>
     </div>
   );

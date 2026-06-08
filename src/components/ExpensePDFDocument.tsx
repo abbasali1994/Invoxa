@@ -5,6 +5,16 @@ import { expenseStyles as styles } from './ExpensePDFStyles';
 export const ExpensePDFDocument = ({ expense }: { expense: any }) => {
   const lineItems = Array.isArray(expense.lineItems) ? expense.lineItems : [];
   
+  const getSymbol = (curr: string) => {
+    if (curr === 'INR') return '₹';
+    if (curr === 'GBP') return '£';
+    if (curr === 'EUR') return '€';
+    if (curr === 'CAD') return 'C$';
+    if (curr === 'CHF') return 'CHF ';
+    return '$';
+  };
+  const sym = getSymbol(expense.currency || 'USD');
+  
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -33,7 +43,6 @@ export const ExpensePDFDocument = ({ expense }: { expense: any }) => {
         <View style={styles.tableHeader}>
           <Text style={styles.colDesc}>Description</Text>
           <Text style={styles.colQty}>Qty</Text>
-          <Text style={styles.colRate}>Rate</Text>
           <Text style={styles.colAmt}>Amount</Text>
         </View>
         
@@ -49,8 +58,7 @@ export const ExpensePDFDocument = ({ expense }: { expense: any }) => {
             <View key={i} style={styles.tableRow}>
               <Text style={styles.colDesc}>{item.description}</Text>
               <Text style={styles.colQty}>{item.hours || item.qty || 0}</Text>
-              <Text style={styles.colRate}>{item.cost || item.rate || 0}</Text>
-              <Text style={styles.colAmt}>${Number(item.amount || 0).toFixed(2)}</Text>
+              <Text style={styles.colAmt}>{sym}{Number(item.amount || 0).toFixed(2)}</Text>
             </View>
           )
         })}
@@ -58,15 +66,11 @@ export const ExpensePDFDocument = ({ expense }: { expense: any }) => {
         <View style={styles.totals}>
           <View style={styles.totalRow}>
             <Text>Subtotal</Text>
-            <Text>${Number(expense.subtotal || 0).toFixed(2)}</Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text>Tax ({expense.taxRate || 0}%)</Text>
-            <Text>${(Number(expense.total || 0) - Number(expense.subtotal || 0)).toFixed(2)}</Text>
+            <Text>{sym}{Number(expense.subtotal || 0).toFixed(2)}</Text>
           </View>
           <View style={styles.totalRowBold}>
             <Text>TOTAL</Text>
-            <Text>${Number(expense.total || expense.amount || 0).toFixed(2)}</Text>
+            <Text>{sym}{Number(expense.total || expense.amount || 0).toFixed(2)}</Text>
           </View>
         </View>
 
@@ -75,10 +79,6 @@ export const ExpensePDFDocument = ({ expense }: { expense: any }) => {
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>Payment Method:</Text>
             <Text style={styles.paymentValue}>{expense.paymentMethod || 'N/A'}</Text>
-          </View>
-          <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>Paid From:</Text>
-            <Text style={styles.paymentValue}>{expense.account?.name || 'N/A'}</Text>
           </View>
           <View style={{ ...styles.paymentRow, marginTop: 4 }}>
             <Text style={styles.paymentLabel}>Notes:</Text>
