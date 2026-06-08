@@ -55,6 +55,18 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
   const { watch, setValue, getValues } = methods;
   const watchLineItems = watch("lineItems");
   const watchClientId = watch("clientId");
+  const watchDate = watch("date");
+
+  useEffect(() => {
+    const currentInvoiceNumber = getValues("invoiceNumber");
+    if (watchDate && currentInvoiceNumber && currentInvoiceNumber.startsWith('INV-')) {
+      const year = watchDate.split('-')[0];
+      const parts = currentInvoiceNumber.split('-');
+      if (parts.length === 3 && parts[1] !== year && year.length === 4) {
+        setValue("invoiceNumber", `INV-${year}-${parts[2]}`);
+      }
+    }
+  }, [watchDate, setValue, getValues]);
 
   useEffect(() => {
     const client = clients.find(c => c.id === watchClientId);

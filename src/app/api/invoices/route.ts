@@ -33,6 +33,8 @@ const createInvoiceSchema = z.object({
   accountNumber: z.string().optional(),
   ifscCode: z.string().optional(),
   swiftCode: z.string().optional(),
+  invoiceNumber: z.string().optional(),
+  date: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -80,13 +82,21 @@ export async function POST(request: NextRequest) {
     });
     if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
 
-    const count = await prisma.invoice.count({ where: { workspaceId } });
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    const invoiceDate = validatedData.date ? new Date(validatedData.date) : new Date();
+
+    let invoiceNumber = validatedData.invoiceNumber;
+    if (!invoiceNumber) {
+      const count = await prisma.invoice.count({ where: { workspaceId } });
+      invoiceNumber = `INV-${invoiceDate.getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    }
+
+    const { date, invoiceNumber: _reqInvNumber, ...restData } = validatedData;
 
     const invoice = await prisma.invoice.create({
       data: {
-        ...validatedData,
+        ...restData,
         invoiceNumber,
+        createdAt: invoiceDate,
         workspaceId,
         createdById: session?.user?.id,
         lineItems: validatedData.lineItems,
