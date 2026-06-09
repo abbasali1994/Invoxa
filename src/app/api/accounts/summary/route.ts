@@ -33,7 +33,7 @@ function getMonthWeeks(year: number, month: number) {
   ]
 }
 
-const BANK_METHODS = ['BANK_TRANSFER', 'WISE', 'STRIPE', 'PAYPAL']
+const BANK_METHODS = ['BANK_TRANSFER']
 const CRYPTO_METHODS = ['CRYPTO']
 const CASH_METHODS = ['CASH']
 

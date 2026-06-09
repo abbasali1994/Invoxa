@@ -6,9 +6,9 @@ export const TABS = ['General', 'Payments', 'Scheduler', 'Team'] as const;
 export type Tab = typeof TABS[number];
 
 const DEFAULT_PAYMENT_METHODS = [
-  { id: 'bank', name: 'Bank Transfer', type: 'Bank Transfer', builtin: true },
-  { id: 'crypto', name: 'Token Transfer (Crypto)', type: 'Token Transfer (Crypto)', builtin: true },
-  { id: 'cash', name: 'Cash', type: 'Cash', builtin: true },
+  { id: 'BANK_TRANSFER', name: 'Bank Transfer', type: 'BANK_TRANSFER', builtin: true },
+  { id: 'CRYPTO', name: 'Token Transfer (Crypto)', type: 'CRYPTO', builtin: true },
+  { id: 'CASH', name: 'Cash', type: 'CASH', builtin: true },
 ];
 
 export function useSettings() {
