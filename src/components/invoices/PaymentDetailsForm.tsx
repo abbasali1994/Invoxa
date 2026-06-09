@@ -1,6 +1,7 @@
 import React from 'react';
 import { useFormContext } from "react-hook-form";
 import { useSettings } from "@/hooks/useSettings";
+import { PaymentMethod, PAYMENT_METHOD_LABELS } from "@/lib/paymentMethods";
 
 export function PaymentDetailsForm() {
   const { register, setValue, watch } = useFormContext();
@@ -10,8 +11,8 @@ export function PaymentDetailsForm() {
   const uniqueTypes = Array.from(new Set(paymentMethods.map(m => m.type)));
   const savedAccounts = paymentMethods.filter(m => m.type === paymentMethodType && !(m.builtin && m.name === m.type));
   
-  const hideBankFields = paymentMethodType === 'Crypto' || paymentMethodType === 'Token Transfer (Crypto)';
-  const isCash = paymentMethodType === 'Cash';
+  const hideBankFields = paymentMethodType === PaymentMethod.CRYPTO;
+  const isCash = paymentMethodType === PaymentMethod.CASH;
 
   return (
     <div className="pt-4 border-t border-neutral-800 space-y-4">
@@ -22,9 +23,9 @@ export function PaymentDetailsForm() {
           <label className="block text-sm font-medium text-neutral-300 mb-1">Payment Method</label>
           <select {...register("paymentMethod")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
             <option value="">Select Method...</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Crypto">Token Transfer (Crypto)</option>
-            <option value="Cash">Cash</option>
+            <option value={PaymentMethod.BANK_TRANSFER}>{PAYMENT_METHOD_LABELS[PaymentMethod.BANK_TRANSFER]}</option>
+            <option value={PaymentMethod.CRYPTO}>{PAYMENT_METHOD_LABELS[PaymentMethod.CRYPTO]}</option>
+            <option value={PaymentMethod.CASH}>{PAYMENT_METHOD_LABELS[PaymentMethod.CASH]}</option>
           </select>
         </div>
 

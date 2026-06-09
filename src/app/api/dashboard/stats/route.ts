@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWorkspaceId } from '@/lib/workspace'
+import { PAYMENT_METHOD_ALIASES, PaymentMethod } from '@/lib/paymentMethods'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,7 +46,10 @@ export async function GET(req: NextRequest) {
             status: { in: ['SETTLED', 'PARTIAL'] },
             settledAt: { gte: start, lte: end },
             paymentMethod: {
-              in: ['Bank Transfer', 'BANK TRANSFER', 'BANK_TRANSFER', 'Cash', 'CASH', 'PETTY CASH']
+              in: [
+                ...PAYMENT_METHOD_ALIASES[PaymentMethod.BANK_TRANSFER],
+                ...PAYMENT_METHOD_ALIASES[PaymentMethod.CASH],
+              ]
             }
           },
           _sum: { actualInrReceived: true, settlementGap: true },

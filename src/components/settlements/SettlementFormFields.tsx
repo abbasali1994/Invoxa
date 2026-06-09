@@ -1,10 +1,13 @@
 import React from "react";
 import { useSettings } from "@/hooks/useSettings";
+import { PaymentMethod, PAYMENT_METHOD_LABELS } from "@/lib/paymentMethods";
 import { DatePicker } from "@/components/ui/DatePicker";
 export function SettlementFormFields({ register, rateStatus, settlementDateValue }: any) {
   const { paymentMethods } = useSettings();
   const uniqueTypes = Array.from(new Set(paymentMethods.map((m: any) => m.type)))
-    .filter(t => t !== 'Crypto' && t !== 'Token Transfer (Crypto)' && t !== 'CRYPTO');
+    .filter(t => t !== PaymentMethod.CRYPTO);
+
+  const labelFor = (t: string) => PAYMENT_METHOD_LABELS[t as keyof typeof PAYMENT_METHOD_LABELS] ?? t;
 
   return (
     <>
@@ -40,7 +43,7 @@ export function SettlementFormFields({ register, rateStatus, settlementDateValue
         <label className="block font-medium mb-1">Payment Method</label>
         <select {...register("paymentMethod")} className="w-full bg-neutral-950 border border-neutral-800 rounded p-2 outline-none focus:ring-1 focus:ring-indigo-500">
           <option value="">Select Method...</option>
-          {uniqueTypes.map(t => <option key={t as string} value={t as string}>{t as string}</option>)}
+          {uniqueTypes.map(t => <option key={t as string} value={t as string}>{labelFor(t as string)}</option>)}
         </select>
       </div>
 

@@ -1,13 +1,15 @@
 import React from 'react';
 import { useFormContext } from "react-hook-form";
 import { useSettings } from "@/hooks/useSettings";
+import { PaymentMethod, PAYMENT_METHOD_LABELS } from "@/lib/paymentMethods";
 
 export function ExpensePaymentDetailsForm({ accounts }: { accounts: any[] }) {
   const { register } = useFormContext();
   const { paymentMethods } = useSettings();
 
-  const validMethods = paymentMethods.filter(m => 
-    m.type === 'Cash' || (m.type === 'Bank Transfer' && !(m.builtin && m.name === 'Bank Transfer'))
+  const validMethods = paymentMethods.filter(m =>
+    m.type === PaymentMethod.CASH ||
+    (m.type === PaymentMethod.BANK_TRANSFER && !(m.builtin && m.name === PAYMENT_METHOD_LABELS[PaymentMethod.BANK_TRANSFER]))
   );
 
   return (

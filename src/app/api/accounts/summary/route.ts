@@ -33,9 +33,11 @@ function getMonthWeeks(year: number, month: number) {
   ]
 }
 
-const BANK_METHODS = ['BANK_TRANSFER', 'BANK TRANSFER']
-const CRYPTO_METHODS = ['CRYPTO', 'CRYPTO TRANSFER']
-const CASH_METHODS = ['CASH', 'PETTY CASH']
+import { PAYMENT_METHOD_ALIASES, PaymentMethod } from '@/lib/paymentMethods'
+
+const BANK_METHODS = PAYMENT_METHOD_ALIASES[PaymentMethod.BANK_TRANSFER].map(v => v.toUpperCase())
+const CRYPTO_METHODS = PAYMENT_METHOD_ALIASES[PaymentMethod.CRYPTO].map(v => v.toUpperCase())
+const CASH_METHODS = PAYMENT_METHOD_ALIASES[PaymentMethod.CASH].map(v => v.toUpperCase())
 
 export async function GET(request: NextRequest) {
   try {
@@ -75,7 +77,7 @@ export async function GET(request: NextRequest) {
     const cryptoInvoices = await prisma.invoice.findMany({
       where: {
         ...(workspaceId ? { workspaceId } : {}),
-        paymentMethod: { in: ['Crypto', 'CRYPTO'] },
+        paymentMethod: { in: PAYMENT_METHOD_ALIASES[PaymentMethod.CRYPTO] },
         status: { in: ['SENT', 'OVERDUE'] },
         deletedAt: null,
         ...(dateFilter ? { createdAt: dateFilter } : {}),

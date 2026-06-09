@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { PaymentMethod, PAYMENT_METHOD_LABELS } from "@/lib/paymentMethods";
 
 export const TABS = ['General', 'Payments', 'Scheduler', 'Team'] as const;
 export type Tab = typeof TABS[number];
 
 const DEFAULT_PAYMENT_METHODS = [
-  { id: 'BANK_TRANSFER', name: 'Bank Transfer', type: 'Bank Transfer', builtin: true },
-  { id: 'CRYPTO', name: 'Token Transfer (Crypto)', type: 'Crypto', builtin: true },
-  { id: 'CASH', name: 'Cash', type: 'Cash', builtin: true },
+  { id: PaymentMethod.BANK_TRANSFER, name: PAYMENT_METHOD_LABELS[PaymentMethod.BANK_TRANSFER], type: PaymentMethod.BANK_TRANSFER, builtin: true },
+  { id: PaymentMethod.CRYPTO, name: PAYMENT_METHOD_LABELS[PaymentMethod.CRYPTO], type: PaymentMethod.CRYPTO, builtin: true },
+  { id: PaymentMethod.CASH, name: PAYMENT_METHOD_LABELS[PaymentMethod.CASH], type: PaymentMethod.CASH, builtin: true },
 ];
 
 export function useSettings() {
@@ -25,8 +26,8 @@ export function useSettings() {
   const [paymentMethods, setPaymentMethods] = useState<any[]>([...DEFAULT_PAYMENT_METHODS]);
   const [showAddMethod, setShowAddMethod] = useState(false);
   const [editingMethodId, setEditingMethodId] = useState<string | null>(null);
-  const [newMethod, setNewMethod] = useState({ 
-    name: '', type: 'Bank Transfer', instructions: '',
+  const [newMethod, setNewMethod] = useState({
+    name: '', type: PaymentMethod.BANK_TRANSFER, instructions: '',
     bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: ''
   });
 
@@ -73,9 +74,9 @@ export function useSettings() {
     }
     setPaymentMethods(updated);
     localStorage.setItem('invoxa_payment_methods', JSON.stringify(updated));
-    setNewMethod({ 
-      name: '', type: 'Bank Transfer', instructions: '',
-      bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: '' 
+    setNewMethod({
+      name: '', type: PaymentMethod.BANK_TRANSFER, instructions: '',
+      bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: '',
     });
     setShowAddMethod(false);
     setEditingMethodId(null);

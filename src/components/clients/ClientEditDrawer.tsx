@@ -1,4 +1,5 @@
 import React from "react";
+import { PaymentMethod } from "@/lib/paymentMethods";
 
 export function ClientEditDrawer({ formData, setFormData, isEditOpen, setIsEditOpen, handleSaveEdit }: any) {
   if (!isEditOpen) return null;
@@ -46,10 +47,8 @@ export function ClientEditDrawer({ formData, setFormData, isEditOpen, setIsEditO
                 <label className="text-sm font-medium text-neutral-300 block mb-1">Payment Method</label>
                 <select value={formData.paymentMethod || ''} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} className="w-full bg-neutral-950 border border-neutral-800 rounded-md p-2 text-sm focus:border-indigo-500 outline-none transition-colors">
                   <option value="">Select Method...</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Crypto">Crypto</option>
-                  <option value="PayPal">PayPal</option>
-                  <option value="Wise">Wise</option>
+                  <option value={PaymentMethod.BANK_TRANSFER}>Bank Transfer</option>
+                  <option value={PaymentMethod.CRYPTO}>Crypto</option>
                 </select>
               </div>
               <div>
