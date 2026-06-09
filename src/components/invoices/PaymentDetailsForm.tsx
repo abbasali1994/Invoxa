@@ -11,6 +11,7 @@ export function PaymentDetailsForm() {
   const savedAccounts = paymentMethods.filter(m => m.type === paymentMethodType && !(m.builtin && m.name === m.type));
   
   const hideBankFields = paymentMethodType === 'Crypto' || paymentMethodType === 'Token Transfer (Crypto)';
+  const isCash = paymentMethodType === 'Cash';
 
   return (
     <div className="pt-4 border-t border-neutral-800 space-y-4">
@@ -23,6 +24,7 @@ export function PaymentDetailsForm() {
             <option value="">Select Method...</option>
             <option value="Bank Transfer">Bank Transfer</option>
             <option value="Crypto">Token Transfer (Crypto)</option>
+            <option value="Cash">Cash</option>
           </select>
         </div>
 
@@ -48,7 +50,7 @@ export function PaymentDetailsForm() {
           </div>
         )}
 
-        {hideBankFields ? (
+        {isCash ? null : hideBankFields ? (
           <>
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-1">Currency</label>
