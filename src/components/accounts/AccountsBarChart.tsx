@@ -124,9 +124,8 @@ export function AccountsBarChart({ yearlyData, allMonthsWeeklyData }: AccountsBa
             <Tooltip
               cursor={{ fill: '#1a1a1a' }}
               contentStyle={{ backgroundColor: '#171717', borderColor: '#404040', color: '#fff', borderRadius: '8px' }}
-              formatter={(value: number, name: string) => [
-                `₹${value.toLocaleString('en-IN')}`,
-                name === 'bankTransfer' ? 'Bank Transfer' : name === 'crypto' ? 'Crypto' : 'Cash'
+              formatter={(value) => [
+                `₹${(value as number).toLocaleString('en-IN')}`
               ]}
             />
             <Legend
