@@ -27,15 +27,8 @@ export function InvoiceRow({ inv, toggleStar, deleteInvoice }: InvoiceRowProps) 
       <td className="px-5 py-4 text-neutral-300">{inv.client.name}</td>
       <td className="px-5 py-4">{format(new Date(inv.createdAt), 'MMM d, yyyy')}</td>
       <td className="px-5 py-4">
-        {inv.createdBy ? (
-          <div className="flex items-center gap-2">
-            {inv.createdBy.image && (
-              <img src={inv.createdBy.image} alt="" className="w-5 h-5 rounded-full flex-shrink-0" />
-            )}
-            <span className="text-xs text-neutral-400 truncate max-w-[100px]" title={inv.createdBy.name ?? inv.createdBy.email}>
-              {inv.createdBy.name ?? inv.createdBy.email}
-            </span>
-          </div>
+        {inv.paidAt ? (
+          <td className="px-5 py-4">{format(new Date(inv.paidAt), 'MMM d, yyyy')}</td>
         ) : (
           <span className="text-xs text-neutral-600">—</span>
         )}

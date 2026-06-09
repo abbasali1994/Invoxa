@@ -85,7 +85,7 @@ export function InvoiceTable({ invoices, toggleStar, deleteInvoice }: InvoiceTab
               </div>
             </th>
             
-            <th className="px-5 py-3 font-medium">Created By</th>
+            <th className="px-5 py-3 font-medium">Paid At</th>
             
             <th 
               className="px-5 py-3 font-medium cursor-pointer group hover:text-white transition-colors select-none" 
