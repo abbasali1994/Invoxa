@@ -74,12 +74,12 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           Accounting
         </div>
 
-        {accountingItems.map(({ href, label, icon: Icon, indent }) => (
+        {accountingItems.map(({ href, label, icon: Icon, }) => (
           <Link
             key={href}
             href={href}
             onClick={onClose}
-            className={`flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${indent ? "ml-2" : ""} ${
+            className={`flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
               isActive(href)
                 ? "bg-indigo-600/10 text-indigo-400"
                 : "text-neutral-300 hover:text-white hover:bg-neutral-800"
