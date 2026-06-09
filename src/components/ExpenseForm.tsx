@@ -23,7 +23,14 @@ export function ExpenseForm({ initialData, isEdit = false }: { initialData?: any
           <div className="flex space-x-3">
             <button 
               type="button"
-              onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
+              onClick={handleSubmit(
+                (d) => onSubmit(d, 'DRAFT'),
+                (errors) => {
+                  console.error(errors);
+                  const firstError = Object.values(errors)[0]?.message as string;
+                  import("sonner").then(m => m.toast.error(`Validation failed: ${firstError || 'Check required fields'}`));
+                }
+              )}
               disabled={isSaving}
               className="px-4 py-2 border border-neutral-700 rounded-md text-sm font-medium hover:bg-neutral-800 transition-colors disabled:opacity-50"
             >
@@ -31,7 +38,14 @@ export function ExpenseForm({ initialData, isEdit = false }: { initialData?: any
             </button>
             <button 
               type="button"
-              onClick={handleSubmit((d) => onSubmit(d, 'SAVED'))}
+              onClick={handleSubmit(
+                (d) => onSubmit(d, 'SAVED'),
+                (errors) => {
+                  console.error(errors);
+                  const firstError = Object.values(errors)[0]?.message as string;
+                  import("sonner").then(m => m.toast.error(`Validation failed: ${firstError || 'Check required fields'}`));
+                }
+              )}
               disabled={isSaving}
               className="flex items-center px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
