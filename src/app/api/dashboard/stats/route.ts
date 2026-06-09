@@ -45,8 +45,8 @@ export async function GET(req: NextRequest) {
             status: { in: ['SETTLED', 'PARTIAL'] },
             settledAt: { gte: start, lte: end },
           },
-          _sum: { actualInrReceived: true },
-        }).catch(() => ({ _sum: { actualInrReceived: 0 } })),
+          _sum: { actualInrReceived: true, settlementGap: true },
+        }).catch(() => ({ _sum: { actualInrReceived: 0, settlementGap: 0 } })),
 
         prisma.invoice.findMany({
           where: {
@@ -76,13 +76,15 @@ export async function GET(req: NextRequest) {
     const totalExpensesINR = expenses.reduce((sum, e) => {
       return sum + (e.currency === 'INR' ? e.amount : e.amount * usdToInr);
     }, 0);
-    const totalRealizedINR = realizedINR._sum.actualInrReceived || 0;
+    const totalRealizedINR = realizedINR._sum?.actualInrReceived || 0;
+    const totalSettlementGap = realizedINR._sum?.settlementGap || 0;
 
     return NextResponse.json({
-      totalInvoicedUSD: invoicedThisMonth._sum.total || 0,
+      totalInvoicedUSD: invoicedThisMonth._sum?.total || 0,
       totalRealizedINR,
       totalExpensesINR,
       realizedProfitINR: totalRealizedINR - totalExpensesINR,
+      totalSettlementGap,
       pendingSettlements: {
         count: pendingInvoices.length,
         usdValue: pendingUSD,

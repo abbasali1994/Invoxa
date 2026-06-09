@@ -44,8 +44,18 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const statusParam = searchParams.get('status');
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+
+    const dateFrom = from ? new Date(from + 'T00:00:00') : undefined;
+    const dateTo = to ? new Date(to + 'T23:59:59') : undefined;
+    const hasDateFilter = !!(dateFrom && dateTo);
 
     let whereClause: any = { deletedAt: null, workspaceId };
+
+    if (hasDateFilter) {
+      whereClause.createdAt = { gte: dateFrom, lte: dateTo };
+    }
 
     if (statusParam && statusParam !== 'ALL' && statusParam !== 'active') {
       whereClause.status = statusParam.toUpperCase();
