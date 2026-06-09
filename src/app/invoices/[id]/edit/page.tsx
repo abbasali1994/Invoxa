@@ -19,8 +19,16 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
       })
       .then(data => {
         // format date properly
-        if (data.date) data.date = new Date(data.date).toISOString().split('T')[0];
+        data.date = new Date(data.createdAt || data.date || Date.now()).toISOString().split('T')[0];
         if (data.dueDate) data.dueDate = new Date(data.dueDate).toISOString().split('T')[0];
+        
+        // Convert nulls to undefined for Zod validation
+        Object.keys(data).forEach(key => {
+          if (data[key] === null) {
+            data[key] = undefined;
+          }
+        });
+        
         setInvoice(data);
       })
       .catch(() => {

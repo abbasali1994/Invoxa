@@ -35,6 +35,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { date, paymentTerms, clientName, client, settlements, createdAt, updatedAt, deletedAt, workspaceId: _ws, createdById, ...updateData } = body;
 
     if (updateData.dueDate) updateData.dueDate = new Date(updateData.dueDate);
+    if (date) updateData.createdAt = new Date(date);
 
     const invoice = await prisma.invoice.update({
       where: { id },

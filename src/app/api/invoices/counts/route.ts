@@ -8,12 +8,25 @@ export async function GET(request: NextRequest) {
     const workspaceId = await getCurrentWorkspaceId();
     if (!workspaceId) return NextResponse.json({ error: 'No active workspace' }, { status: 401 });
 
+    const { searchParams } = new URL(request.url);
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+
+    const dateFrom = from ? new Date(from + 'T00:00:00') : undefined;
+    const dateTo = to ? new Date(to + 'T23:59:59') : undefined;
+    const hasDateFilter = !!(dateFrom && dateTo);
+
+    const baseWhere: any = { deletedAt: null, workspaceId };
+    if (hasDateFilter) {
+      baseWhere.createdAt = { gte: dateFrom, lte: dateTo };
+    }
+
     const [allCount, sentCount, paidCount, overdueCount, draftCount, totalCount] = await Promise.all([
-      prisma.invoice.count({ where: { deletedAt: null, workspaceId } }),
-      prisma.invoice.count({ where: { deletedAt: null, status: 'SENT', workspaceId } }),
-      prisma.invoice.count({ where: { deletedAt: null, status: 'PAID', workspaceId } }),
-      prisma.invoice.count({ where: { deletedAt: null, status: 'OVERDUE', workspaceId } }),
-      prisma.invoice.count({ where: { deletedAt: null, status: 'DRAFT', workspaceId } }),
+      prisma.invoice.count({ where: baseWhere }),
+      prisma.invoice.count({ where: { ...baseWhere, status: 'SENT' } }),
+      prisma.invoice.count({ where: { ...baseWhere, status: 'PAID' } }),
+      prisma.invoice.count({ where: { ...baseWhere, status: 'OVERDUE' } }),
+      prisma.invoice.count({ where: { ...baseWhere, status: 'DRAFT' } }),
       prisma.invoice.count({ where: { workspaceId } }),
     ]);
 
