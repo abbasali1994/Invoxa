@@ -44,6 +44,9 @@ export async function GET(req: NextRequest) {
             workspaceId,
             status: { in: ['SETTLED', 'PARTIAL'] },
             settledAt: { gte: start, lte: end },
+            paymentMethod: {
+              in: ['Bank Transfer', 'BANK TRANSFER', 'BANK_TRANSFER', 'Cash', 'CASH', 'PETTY CASH']
+            }
           },
           _sum: { actualInrReceived: true, settlementGap: true },
         }).catch(() => ({ _sum: { actualInrReceived: 0, settlementGap: 0 } })),

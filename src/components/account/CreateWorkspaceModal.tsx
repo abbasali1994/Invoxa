@@ -1,4 +1,5 @@
 import React from "react";
+import { Loader2 } from "lucide-react";
 
 export function CreateWorkspaceModal({ showCreateModal, setShowCreateModal, newWorkspaceName, setNewWorkspaceName, handleCreateWorkspace, creating }: any) {
   if (!showCreateModal) return null;
@@ -21,8 +22,9 @@ export function CreateWorkspaceModal({ showCreateModal, setShowCreateModal, newW
           <button
             onClick={handleCreateWorkspace}
             disabled={creating || !newWorkspaceName.trim()}
-            className="px-4 py-2 bg-indigo-600 rounded-md text-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            className="flex items-center px-4 py-2 bg-indigo-600 rounded-md text-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
           >
+            {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {creating ? 'Creating...' : 'Create'}
           </button>
         </div>

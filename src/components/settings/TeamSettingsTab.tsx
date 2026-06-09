@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Plus, Mail, RefreshCw, XCircle, Clock } from 'lucide-react'
+import { Plus, Mail, RefreshCw, XCircle, Loader2 } from 'lucide-react'
 
 type Invitation = {
   id: string
@@ -140,8 +140,8 @@ export function TeamSettingsTab() {
             disabled={isInviting || !email}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
           >
-            {isInviting ? <Clock className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            Send Invite
+            {isInviting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            {isInviting ? "Sending..." : "Send Invite"}
           </button>
         </form>
       </div>

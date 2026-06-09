@@ -3,7 +3,8 @@ import { useSettings } from "@/hooks/useSettings";
 import { DatePicker } from "@/components/ui/DatePicker";
 export function SettlementFormFields({ register, rateStatus, settlementDateValue }: any) {
   const { paymentMethods } = useSettings();
-  const uniqueTypes = Array.from(new Set(paymentMethods.map((m: any) => m.type)));
+  const uniqueTypes = Array.from(new Set(paymentMethods.map((m: any) => m.type)))
+    .filter(t => t !== 'Crypto' && t !== 'Token Transfer (Crypto)' && t !== 'CRYPTO');
 
   return (
     <>

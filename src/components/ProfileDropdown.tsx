@@ -44,9 +44,6 @@ export function ProfileDropdown() {
         <DropdownMenuItem onClick={() => router.push('/account')} className="hover:bg-neutral-800 cursor-pointer text-sm text-neutral-300">
           <User className="w-4 h-4 mr-2" /> Account
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push('/settings')} className="hover:bg-neutral-800 cursor-pointer text-sm text-neutral-300">
-          <Settings className="w-4 h-4 mr-2" /> Settings
-        </DropdownMenuItem>
 
         <WorkspaceSwitcher {...profileState} />
 

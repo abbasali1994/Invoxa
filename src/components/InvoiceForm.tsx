@@ -30,9 +30,10 @@ export function InvoiceForm({ initialData, isEdit = false }: { initialData?: any
               type="button"
               onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
               disabled={isSaving}
-              className="px-4 py-2 border border-neutral-700 rounded-md text-sm font-medium hover:bg-neutral-800 transition-colors disabled:opacity-50"
+              className="flex items-center px-4 py-2 border border-neutral-700 rounded-md text-sm font-medium hover:bg-neutral-800 transition-colors disabled:opacity-50"
             >
-              Save Draft
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {isSaving ? "Saving..." : "Save Draft"}
             </button>
             <button 
               type="button"

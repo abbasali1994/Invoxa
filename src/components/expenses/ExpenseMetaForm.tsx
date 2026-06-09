@@ -13,10 +13,6 @@ export function ExpenseMetaForm({ accounts }: { accounts: any[] }) {
         {(errors.vendor as any) && <p className="text-rose-500 text-xs mt-1">{(errors.vendor as any).message}</p>}
       </div>
       <div>
-        <label className="block text-sm font-medium text-neutral-300 mb-1">Expense #</label>
-        <input type="text" {...register("expenseNumber")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
-      </div>
-      <div>
         <label className="block text-sm font-medium text-neutral-300 mb-1">Date</label>
         <DatePicker {...register("date")} value={watch("date") || ""} />
       </div>
@@ -32,13 +28,6 @@ export function ExpenseMetaForm({ accounts }: { accounts: any[] }) {
         <label className="block text-sm font-medium text-neutral-300 mb-1">Currency</label>
         <select {...register("currency")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
           {['USD', 'INR', 'GBP', 'EUR', 'CAD', 'CHF'].map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-neutral-300 mb-1">Account</label>
-        <select {...register("accountId")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
-          <option value="">Select Account...</option>
-          {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
       </div>
 

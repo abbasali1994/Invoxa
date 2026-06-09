@@ -8,23 +8,23 @@ import { useRouter } from "next/navigation";
 
 export const expenseSchema = z.object({
   vendor: z.string().min(1, "Vendor name is required"),
-  expenseNumber: z.string().optional(),
+  expenseNumber: z.string().nullish(),
   date: z.string(),
   category: z.string().min(1, "Category is required"),
   currency: z.string().min(1, "Currency is required"),
-  accountId: z.string().optional(),
-  notes: z.string().optional(),
+  accountId: z.string().nullish(),
+  notes: z.string().nullish(),
   isRecurring: z.boolean().default(false),
   lineItems: z.array(z.object({
     description: z.string().min(1, "Required"),
-    hours: z.number().optional(),
-    cost: z.number().optional(),
-    amount: z.number().optional(),
+    hours: z.number().nullish(),
+    cost: z.number().nullish(),
+    amount: z.number().nullish(),
     isSection: z.boolean().default(false)
   })).min(1, "At least one item required"),
-  taxRate: z.number().optional().default(0),
-  paymentMethod: z.string().optional(),
-  paidFromAccountId: z.string().optional(),
+  taxRate: z.number().nullish().transform(v => v ?? 0),
+  paymentMethod: z.string().nullish(),
+  paidFromAccountId: z.string().nullish(),
 });
 
 export type ExpenseFormValues = z.infer<typeof expenseSchema>;
@@ -34,18 +34,31 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
   const [isSaving, setIsSaving] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
 
+  const defaultValues = initialData ? {
+    ...initialData,
+    date: initialData.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    lineItems: Array.isArray(initialData.lineItems) && initialData.lineItems.length > 0 
+      ? initialData.lineItems 
+      : [{ description: initialData.category || "Expense Item", hours: 1, cost: initialData.amount || 0, amount: initialData.amount || 0, isSection: false }],
+    taxRate: initialData.taxRate ?? 0,
+    isRecurring: initialData.isRecurring ?? false,
+    currency: initialData.currency || "INR",
+    category: initialData.category || "",
+    vendor: initialData.vendor || "",
+  } : {
+    vendor: "",
+    expenseNumber: `EXP-${Math.floor(Math.random() * 10000)}`,
+    date: new Date().toISOString().split('T')[0],
+    category: "",
+    currency: "INR",
+    isRecurring: false,
+    taxRate: 0,
+    lineItems: [{ description: "", hours: 1, cost: 0, amount: 0, isSection: false }]
+  };
+
   const methods = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema as any),
-    defaultValues: initialData || {
-      vendor: "",
-      expenseNumber: `EXP-${Math.floor(Math.random() * 10000)}`,
-      date: new Date().toISOString().split('T')[0],
-      category: "",
-      currency: "INR",
-      isRecurring: false,
-      taxRate: 0,
-      lineItems: [{ description: "", hours: 1, cost: 0, amount: 0, isSection: false }]
-    }
+    defaultValues
   });
 
   const { watch, reset, getValues } = methods;

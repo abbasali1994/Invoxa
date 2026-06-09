@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 
 export function PaymentSettingsTab({ 
   paymentMethods, showAddMethod, setShowAddMethod, newMethod, setNewMethod, 
-  addPaymentMethod, removePaymentMethod 
+  addPaymentMethod, removePaymentMethod, editingMethodId, setEditingMethodId
 }: any) {
   const [isCustomType, setIsCustomType] = useState(false);
   const uniqueTypes = Array.from(new Set(paymentMethods.map((m: any) => m.type)));
@@ -19,7 +19,7 @@ export function PaymentSettingsTab({
 
       {showAddMethod && (
         <div className="p-4 border border-indigo-500/30 bg-indigo-500/5 rounded-lg space-y-3">
-          <h5 className="text-sm font-medium text-indigo-300">New Payment Method</h5>
+          <h5 className="text-sm font-medium text-indigo-300">{editingMethodId ? 'Edit Payment Method' : 'New Payment Method'}</h5>
           <input
             type="text"
             placeholder="Name (e.g. HDFC Bank)"
@@ -42,6 +42,7 @@ export function PaymentSettingsTab({
               <input type="text" placeholder="Account Number" value={newMethod.accountNumber || ''} onChange={e => setNewMethod({...newMethod, accountNumber: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
               <input type="text" placeholder="Bank Name (e.g. HDFC Bank)" value={newMethod.bankName || ''} onChange={e => setNewMethod({...newMethod, bankName: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
               <input type="text" placeholder="IFSC Code" value={newMethod.ifscCode || ''} onChange={e => setNewMethod({...newMethod, ifscCode: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
+              <input type="text" placeholder="SWIFT Code" value={newMethod.swiftCode || ''} onChange={e => setNewMethod({...newMethod, swiftCode: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
             </div>
           ) : (
             <textarea
@@ -52,7 +53,7 @@ export function PaymentSettingsTab({
             />
           )}
           <div className="flex gap-3 justify-end">
-            <button onClick={() => { setShowAddMethod(false); setIsCustomType(false); }} className="px-4 py-1.5 border border-neutral-700 rounded text-sm hover:bg-neutral-800 transition-colors">Cancel</button>
+            <button onClick={() => { setShowAddMethod(false); setIsCustomType(false); setEditingMethodId(null); }} className="px-4 py-1.5 border border-neutral-700 rounded text-sm hover:bg-neutral-800 transition-colors">Cancel</button>
             <button onClick={addPaymentMethod} className="px-4 py-1.5 bg-indigo-600 rounded text-sm hover:bg-indigo-700 transition-colors">Save</button>
           </div>
         </div>
@@ -71,7 +72,8 @@ export function PaymentSettingsTab({
                   onClick={() => { 
                     setShowAddMethod(true); 
                     setIsCustomType(false); 
-                    setNewMethod({name: '', type: type as string, instructions: '', bankAccountName: '', accountNumber: '', bankName: '', ifscCode: ''}); 
+                    setNewMethod({name: '', type: type as string, instructions: '', bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: ''}); 
+                    setEditingMethodId(null);
                   }} 
                   className="p-1 hover:bg-neutral-700 rounded transition-colors text-neutral-400 hover:text-white"
                   title={`Add ${type}`}
@@ -90,7 +92,7 @@ export function PaymentSettingsTab({
                         {m.type === 'Bank Transfer' && m.bankAccountName ? (
                           <div className="text-xs text-neutral-400 mt-1 space-y-0.5">
                             <p>{m.bankName} - {m.accountNumber}</p>
-                            <p>{m.bankAccountName} | IFSC: {m.ifscCode}</p>
+                            <p>{m.bankAccountName} | IFSC: {m.ifscCode}{m.swiftCode ? ` | SWIFT: ${m.swiftCode}` : ''}</p>
                           </div>
                         ) : m.instructions ? (
                           <p className="text-xs text-neutral-600 mt-0.5">{m.instructions}</p>
@@ -100,9 +102,19 @@ export function PaymentSettingsTab({
                         {m.builtin ? (
                           <span className="text-[10px] uppercase tracking-wider text-neutral-600 bg-neutral-900 px-2 py-0.5 rounded">Built-in</span>
                         ) : (
-                          <button onClick={() => removePaymentMethod(m.id)} className="text-neutral-600 hover:text-rose-400 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <>
+                            <button onClick={() => {
+                              setNewMethod(m);
+                              setEditingMethodId(m.id);
+                              setShowAddMethod(true);
+                              setIsCustomType(false);
+                            }} className="text-neutral-600 hover:text-indigo-400 transition-colors">
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => removePaymentMethod(m.id)} className="text-neutral-600 hover:text-rose-400 transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>

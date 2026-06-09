@@ -31,6 +31,7 @@ export function RevenueChart({ data, clients }: RevenueChartProps) {
             <RechartsTooltip
               cursor={{ fill: '#1a1a1a' }}
               contentStyle={{ backgroundColor: '#171717', borderColor: '#404040', color: '#fff' }}
+              wrapperStyle={{ zIndex: 100 }}
               formatter={(value: any, name: any) => {
                 if (typeof value === 'number') {
                   return [`$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, name]
