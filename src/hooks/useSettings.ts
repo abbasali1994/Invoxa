@@ -6,9 +6,9 @@ export const TABS = ['General', 'Payments', 'Scheduler', 'Team'] as const;
 export type Tab = typeof TABS[number];
 
 const DEFAULT_PAYMENT_METHODS = [
-  { id: 'BANK_TRANSFER', name: 'Bank Transfer', type: 'BANK_TRANSFER', builtin: true },
-  { id: 'CRYPTO', name: 'Token Transfer (Crypto)', type: 'CRYPTO', builtin: true },
-  { id: 'CASH', name: 'Cash', type: 'CASH', builtin: true },
+  { id: 'BANK_TRANSFER', name: 'Bank Transfer', type: 'Bank Transfer', builtin: true },
+  { id: 'CRYPTO', name: 'Token Transfer (Crypto)', type: 'Crypto', builtin: true },
+  { id: 'CASH', name: 'Cash', type: 'Cash', builtin: true },
 ];
 
 export function useSettings() {
@@ -24,9 +24,10 @@ export function useSettings() {
 
   const [paymentMethods, setPaymentMethods] = useState<any[]>([...DEFAULT_PAYMENT_METHODS]);
   const [showAddMethod, setShowAddMethod] = useState(false);
+  const [editingMethodId, setEditingMethodId] = useState<string | null>(null);
   const [newMethod, setNewMethod] = useState({ 
     name: '', type: 'Bank Transfer', instructions: '',
-    bankAccountName: '', accountNumber: '', bankName: '', ifscCode: ''
+    bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: ''
   });
 
   useEffect(() => {
@@ -64,15 +65,21 @@ export function useSettings() {
 
   const addPaymentMethod = () => {
     if (!newMethod.name.trim()) return;
-    const updated = [...paymentMethods, { ...newMethod, id: `custom-${Date.now()}`, builtin: false }];
+    let updated;
+    if (editingMethodId) {
+      updated = paymentMethods.map(m => m.id === editingMethodId ? { ...newMethod, id: editingMethodId, builtin: false } : m);
+    } else {
+      updated = [...paymentMethods, { ...newMethod, id: `custom-${Date.now()}`, builtin: false }];
+    }
     setPaymentMethods(updated);
     localStorage.setItem('invoxa_payment_methods', JSON.stringify(updated));
     setNewMethod({ 
       name: '', type: 'Bank Transfer', instructions: '',
-      bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '' 
+      bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: '' 
     });
     setShowAddMethod(false);
-    toast.success('Payment method added');
+    setEditingMethodId(null);
+    toast.success(editingMethodId ? 'Payment method updated' : 'Payment method added');
   };
 
   const removePaymentMethod = (id: string) => {
@@ -90,6 +97,7 @@ export function useSettings() {
     dateFormat, setDateFormat,
     timezone, setTimezone,
     paymentMethods, showAddMethod, setShowAddMethod, newMethod, setNewMethod,
+    editingMethodId, setEditingMethodId,
     saveGeneral, addPaymentMethod, removePaymentMethod
   };
 }

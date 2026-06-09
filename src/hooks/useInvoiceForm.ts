@@ -56,6 +56,17 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
   const watchClientId = watch("clientId");
   const watchDate = watch("date");
 
+  const [prevDate, setPrevDate] = useState(watchDate);
+
+  useEffect(() => {
+    if (watchDate && watchDate !== prevDate) {
+      const d = new Date(watchDate);
+      d.setDate(d.getDate() + 2);
+      setValue("dueDate", d.toISOString().split('T')[0]);
+      setPrevDate(watchDate);
+    }
+  }, [watchDate, prevDate, setValue]);
+
   useEffect(() => {
     if (isEdit || initialData) return;
     const raw = sessionStorage.getItem('duplicate_invoice_data');

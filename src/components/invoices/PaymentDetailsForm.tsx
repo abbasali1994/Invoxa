@@ -10,7 +10,7 @@ export function PaymentDetailsForm() {
   const uniqueTypes = Array.from(new Set(paymentMethods.map(m => m.type)));
   const savedAccounts = paymentMethods.filter(m => m.type === paymentMethodType && !(m.builtin && m.name === m.type));
   
-  const hideBankFields = paymentMethodType === 'Token Transfer (Crypto)';
+  const hideBankFields = paymentMethodType === 'Crypto' || paymentMethodType === 'Token Transfer (Crypto)';
 
   return (
     <div className="pt-4 border-t border-neutral-800 space-y-4">
@@ -22,19 +22,57 @@ export function PaymentDetailsForm() {
           <select {...register("paymentMethod")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
             <option value="">Select Method...</option>
             <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Crypto">Token Transfer (USDT)</option>
+            <option value="Crypto">Token Transfer (Crypto)</option>
           </select>
         </div>
+
+        {savedAccounts.length > 0 && (
+          <div className="col-span-2 flex items-center gap-3 bg-indigo-500/5 border border-indigo-500/20 rounded-md p-3 mb-2">
+            <label className="text-sm font-medium text-indigo-300 whitespace-nowrap">Autofill from Settings:</label>
+            <select 
+              className="flex-1 bg-neutral-950 border border-neutral-800 rounded-md py-1.5 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
+              onChange={(e) => {
+                const acc = savedAccounts.find(a => a.id === e.target.value);
+                if (acc) {
+                  setValue("bankAccountName", acc.bankAccountName || acc.name || '');
+                  setValue("bankName", acc.bankName || '');
+                  setValue("accountNumber", acc.accountNumber || '');
+                  setValue("ifscCode", acc.ifscCode || '');
+                  setValue("swiftCode", acc.swiftCode || '');
+                }
+              }}
+            >
+              <option value="">-- Choose a saved account --</option>
+              {savedAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
+        )}
 
         {hideBankFields ? (
           <>
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">Wallet Address</label>
-              <input type="text" {...register("accountNumber")} placeholder="0x..." className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none font-mono" />
+              <label className="block text-sm font-medium text-neutral-300 mb-1">Currency</label>
+              <select {...register("bankName")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
+                <option value="">Select Currency...</option>
+                <option value="USDT">USDT</option>
+                <option value="USDC">USDC</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-1">Network</label>
-              <input type="text" {...register("bankAccountName")} placeholder="e.g. Ethereum, Solana, TRON" className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
+              <select {...register("bankAccountName")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
+                <option value="">Select Network...</option>
+                <option value="TRC20 (Tron)">TRC20 (Tron)</option>
+                <option value="ERC20 (Ethereum)">ERC20 (Ethereum)</option>
+                <option value="BEP20 (BNB Smart Chain)">BEP20 (BNB Smart Chain)</option>
+                <option value="Polygon">Polygon</option>
+                <option value="Solana">Solana</option>
+                <option value="Arbitrum">Arbitrum</option>
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-neutral-300 mb-1">Wallet Address</label>
+              <input type="text" {...register("accountNumber")} placeholder="0x..." className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none font-mono" />
             </div>
           </>
         ) : (
