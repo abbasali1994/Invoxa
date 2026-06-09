@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Edit2, Mail, MessageCircle, MoreVertical, Share2, Trash2 } from "lucide-react";
+import { Copy, Download, Edit2, Mail, MessageCircle, MoreVertical, Share2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useInvoiceShare } from "@/hooks/useInvoiceShare";
 import {
@@ -60,6 +60,16 @@ export function InvoiceShareMenu({ invoice, onDelete }: InvoiceShareMenuProps) {
         <DropdownMenuSeparator className="bg-neutral-800" />
         <DropdownMenuItem onClick={() => router.push(`/invoices/${invoice.id}/edit`)} className="hover:bg-neutral-800 cursor-pointer text-sm">
           <Edit2 className="w-4 h-4 mr-2" /> Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            const { id, invoiceNumber, status, createdAt, paidAt, deletedAt, starred, settlements, auditLogs, createdById, createdBy, workspaceId, ...rest } = invoice;
+            sessionStorage.setItem('duplicate_invoice_data', JSON.stringify(rest));
+            router.push('/invoices/new');
+          }}
+          className="hover:bg-neutral-800 cursor-pointer text-sm"
+        >
+          <Copy className="w-4 h-4 mr-2" /> Duplicate
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onDelete(invoice.id)} className="hover:bg-rose-500/10 cursor-pointer text-sm text-rose-400">
           <Trash2 className="w-4 h-4 mr-2" /> Delete

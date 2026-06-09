@@ -64,6 +64,33 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
 
   useEffect(() => {
     if (isEdit || initialData) return;
+
+    const dupDataStr = sessionStorage.getItem('duplicate_expense_data');
+    if (dupDataStr) {
+      try {
+        const data = JSON.parse(dupDataStr);
+        reset({
+          vendor: data.vendor || "",
+          expenseNumber: `EXP-${Math.floor(Math.random() * 10000)}`,
+          date: new Date().toISOString().split('T')[0],
+          category: data.category || "",
+          currency: data.currency || "INR",
+          accountId: data.accountId || "",
+          notes: data.notes || "",
+          isRecurring: data.isRecurring || false,
+          taxRate: data.taxRate || 0,
+          paymentMethod: data.paymentMethod || "",
+          paidFromAccountId: data.paidFromAccountId || "",
+          lineItems: Array.isArray(data.lineItems) && data.lineItems.length > 0 ? data.lineItems : [{ description: "", hours: 1, cost: 0, amount: 0, isSection: false }],
+        });
+      } catch (e) {
+        console.error("Failed to parse duplicate expense data", e);
+      } finally {
+        sessionStorage.removeItem('duplicate_expense_data');
+      }
+      return;
+    }
+
     const aiDataStr = sessionStorage.getItem('ai_expense_data');
     if (aiDataStr) {
       try {

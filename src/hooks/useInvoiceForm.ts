@@ -51,10 +51,41 @@ export function useInvoiceForm(initialData: any, isEdit: boolean, initialClientI
     }
   });
 
-  const { watch, setValue, getValues } = methods;
+  const { watch, setValue, getValues, reset } = methods;
   const watchLineItems = watch("lineItems");
   const watchClientId = watch("clientId");
   const watchDate = watch("date");
+
+  useEffect(() => {
+    if (isEdit || initialData) return;
+    const raw = sessionStorage.getItem('duplicate_invoice_data');
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        reset({
+          ...getValues(),
+          clientId: data.clientId || '',
+          clientName: data.billToCompany || data.clientName || '',
+          currency: data.currency || 'USD',
+          paymentTerms: data.paymentTerms || '',
+          senderName: data.senderName || 'Abbas Ali Lokhandwala',
+          paymentMethod: data.paymentMethod || '',
+          bankAccountName: data.bankAccountName || '',
+          bankName: data.bankName || '',
+          accountNumber: data.accountNumber || '',
+          ifscCode: data.ifscCode || '',
+          swiftCode: data.swiftCode || '',
+          notes: data.notes || '',
+          lineItems: Array.isArray(data.lineItems) && data.lineItems.length > 0 ? data.lineItems : [{ description: '', hours: 0, amount: 0, isSection: false }],
+          date: new Date().toISOString().split('T')[0],
+        });
+      } catch (e) {
+        console.error('Failed to parse duplicate invoice data', e);
+      } finally {
+        sessionStorage.removeItem('duplicate_invoice_data');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const currentInvoiceNumber = getValues("invoiceNumber");

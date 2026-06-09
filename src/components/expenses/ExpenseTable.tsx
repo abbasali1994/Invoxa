@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Edit2, Trash2, Receipt, Eye, MessageCircle, Send, Mail, Link as LinkIcon, ChevronUp, ChevronDown } from "lucide-react";
+import { MoreVertical, Edit2, Trash2, Receipt, Eye, MessageCircle, Send, Mail, Link as LinkIcon, ChevronUp, ChevronDown, Copy } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 type SortField = 'date' | 'vendor' | 'amount' | null;
@@ -106,6 +106,16 @@ export function ExpenseTable({ expenses, handleDelete, handleShare }: { expenses
                   <DropdownMenuContent align="end" className="w-48 bg-neutral-900 border-neutral-800 text-neutral-200">
                     <DropdownMenuItem onClick={() => router.push(`/expenses/${e.id}`)} className="hover:bg-neutral-800 cursor-pointer"><Eye className="w-4 h-4 mr-2" /> View</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => router.push(`/expenses/${e.id}/edit`)} className="hover:bg-neutral-800 cursor-pointer"><Edit2 className="w-4 h-4 mr-2" /> Edit</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const { id, expenseNumber, status, createdAt, deletedAt, receiptUrl, ocrData, aiCategorized, journalEntries, tags, ...rest } = e;
+                        sessionStorage.setItem('duplicate_expense_data', JSON.stringify(rest));
+                        router.push('/expenses/new');
+                      }}
+                      className="hover:bg-neutral-800 cursor-pointer"
+                    >
+                      <Copy className="w-4 h-4 mr-2" /> Duplicate
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-neutral-800" />
                     <DropdownMenuItem onClick={() => handleShare(e, 'whatsapp')} className="hover:bg-neutral-800 cursor-pointer"><MessageCircle className="w-4 h-4 mr-2" /> WhatsApp</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleShare(e, 'telegram')} className="hover:bg-neutral-800 cursor-pointer"><Send className="w-4 h-4 mr-2" /> Telegram</DropdownMenuItem>
