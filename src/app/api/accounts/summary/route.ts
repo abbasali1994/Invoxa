@@ -33,9 +33,9 @@ function getMonthWeeks(year: number, month: number) {
   ]
 }
 
-const BANK_METHODS = ['BANK_TRANSFER']
-const CRYPTO_METHODS = ['CRYPTO']
-const CASH_METHODS = ['CASH']
+const BANK_METHODS = ['BANK_TRANSFER', 'BANK TRANSFER']
+const CRYPTO_METHODS = ['CRYPTO', 'CRYPTO TRANSFER']
+const CASH_METHODS = ['CASH', 'PETTY CASH']
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,7 +50,10 @@ export async function GET(request: NextRequest) {
     const workspaceId = await getCurrentWorkspaceId()
 
     const settlements = await prisma.settlementRecord.findMany({
-      where: dateFilter ? { settledAt: dateFilter } : undefined,
+      where: {
+        ...(workspaceId ? { workspaceId } : {}),
+        ...(dateFilter ? { settledAt: dateFilter } : {})
+      },
       select: {
         paymentMethod: true,
         actualInrReceived: true,
@@ -72,7 +75,7 @@ export async function GET(request: NextRequest) {
     const cryptoInvoices = await prisma.invoice.findMany({
       where: {
         ...(workspaceId ? { workspaceId } : {}),
-        paymentMethod: { in: CRYPTO_METHODS },
+        paymentMethod: { in: ['Crypto', 'CRYPTO'] },
         status: { in: ['SENT', 'OVERDUE'] },
         deletedAt: null,
         ...(dateFilter ? { createdAt: dateFilter } : {}),
