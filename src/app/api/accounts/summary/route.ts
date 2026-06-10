@@ -3,10 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWorkspaceId } from '@/lib/workspace'
 
-function getCurrentFYMonths() {
-  const now = new Date()
-  let startYear = now.getFullYear()
-  if (now.getMonth() < 3) {
+function getFYMonths(baseDate: Date = new Date()) {
+  let startYear = baseDate.getFullYear()
+  if (baseDate.getMonth() < 3) {
     startYear -= 1
   }
   const result = []
@@ -86,8 +85,9 @@ export async function GET(request: NextRequest) {
     })
     const cryptoUnsettled = cryptoInvoices.reduce((sum, inv) => sum + inv.total, 0)
 
-    // Yearly chart — current FY
-    const months = getCurrentFYMonths()
+    // Yearly chart — based on the selected date range's FY
+    const baseDate = fromParam ? new Date(fromParam + 'T00:00:00') : new Date()
+    const months = getFYMonths(baseDate)
     const yearlyData = months.map(({ label, start, end }) => {
       const inRange = settlements.filter(s => {
         if (!s.settledAt) return false
