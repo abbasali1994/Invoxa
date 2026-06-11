@@ -21,24 +21,23 @@ export function ExpenseLineItemsTable({ subtotal, total }: { subtotal: number, t
       </div>
       
       <div className="space-y-3">
-        <div style={{ display: 'grid', gridTemplateColumns: '3fr 80px 110px 40px', gap: '8px', alignItems: 'center' }} className="text-sm font-medium text-neutral-400 px-1">
-          <span>Description</span><span className="text-right">Qty</span><span className="text-right">Amount</span><span></span>
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 110px 40px', gap: '8px', alignItems: 'center' }} className="text-sm font-medium text-neutral-400 px-1">
+          <span>Description</span><span className="text-right">Amount</span><span></span>
         </div>
 
         {fields.map((field, index) => {
           const isSec = watchLineItems[index]?.isSection;
           return (
-            <div key={field.id} style={{ display: 'grid', gridTemplateColumns: '3fr 80px 110px 40px', gap: '8px', alignItems: 'center' }}>
+            <div key={field.id} style={{ display: 'grid', gridTemplateColumns: '3fr 110px 40px', gap: '8px', alignItems: 'center' }}>
               <div style={{ minWidth: 0 }}>
                 <input {...register(`lineItems.${index}.description` as const)} placeholder={isSec ? "Section Header" : "Description"} className={`w-full min-w-0 bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none ${isSec ? 'font-bold text-indigo-400' : ''}`} />
                 {(errors.lineItems as any)?.[index]?.description && <p className="text-rose-500 text-xs mt-1">{(errors.lineItems as any)[index]?.description?.message}</p>}
               </div>
               {!isSec ? (
                 <>
-                  <input type="number" step="0.1" {...register(`lineItems.${index}.hours` as const, { valueAsNumber: true })} placeholder="0" className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none min-w-0" />
                   <input type="number" step="0.01" {...register(`lineItems.${index}.amount` as const, { valueAsNumber: true })} placeholder="0.00" className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm text-right focus:ring-1 focus:ring-indigo-500 outline-none min-w-0" />
                 </>
-              ) : <div className="col-span-2"></div>}
+              ) : <div className="col-span-1"></div>}
               <button type="button" onClick={() => remove(index)} className="p-2 text-neutral-500 hover:text-rose-400 transition-colors flex justify-center min-w-0"><Trash2 className="w-4 h-4" /></button>
             </div>
           );

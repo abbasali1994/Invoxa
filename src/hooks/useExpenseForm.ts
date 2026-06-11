@@ -47,7 +47,7 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
     vendor: initialData.vendor || "",
   } : {
     vendor: "",
-    expenseNumber: `EXP-${Math.floor(Math.random() * 10000)}`,
+    expenseNumber: "",
     date: new Date().toISOString().split('T')[0],
     category: "",
     currency: "INR",
@@ -84,7 +84,7 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
         const data = JSON.parse(dupDataStr);
         reset({
           vendor: data.vendor || "",
-          expenseNumber: `EXP-${Math.floor(Math.random() * 10000)}`,
+          expenseNumber: "",
           date: new Date().toISOString().split('T')[0],
           category: data.category || "",
           currency: data.currency || "INR",
@@ -127,6 +127,12 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
       } finally {
         sessionStorage.removeItem('ai_expense_data');
       }
+    }
+
+    if (!isEdit && !initialData?.expenseNumber) {
+      fetch('/api/expenses/counts').then(res => res.json()).then(data => {
+        if (data.nextNumber) methods.setValue("expenseNumber", data.nextNumber);
+      }).catch(() => {});
     }
   }, [isEdit, initialData, reset, getValues]);
 

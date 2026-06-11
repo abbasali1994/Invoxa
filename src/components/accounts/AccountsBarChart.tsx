@@ -1,7 +1,5 @@
 'use client'
-import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import { ChevronDown } from 'lucide-react'
 
 interface AccountsBarChartProps {
   yearlyData: { month: string; bankTransfer: number; crypto: number; cash: number }[]
@@ -18,17 +16,7 @@ const COLORS = {
 }
 
 export function AccountsBarChart({ yearlyData, allMonthsWeeklyData }: AccountsBarChartProps) {
-  const [period, setPeriod] = useState<string>('yearly')
-
-  let data: any[] = []
-  if (period === 'yearly') {
-    data = yearlyData
-  } else {
-    const monthData = allMonthsWeeklyData.find(m => m.monthName === period)
-    if (monthData) {
-      data = monthData.weeks
-    }
-  }
+  const data = yearlyData;
 
   return (
     <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
@@ -40,66 +28,6 @@ export function AccountsBarChart({ yearlyData, allMonthsWeeklyData }: AccountsBa
           <p style={{ fontSize: '0.75rem', color: '#737373', margin: '0.25rem 0 0' }}>
             Combined view across all accounts
           </p>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button
-            onClick={() => setPeriod('yearly')}
-            style={{
-              padding: '0.25rem 0.75rem',
-              fontSize: '0.75rem',
-              borderRadius: '6px',
-              border: '1px solid',
-              cursor: 'pointer',
-              borderColor: period === 'yearly' ? '#6366f1' : '#404040',
-              background: period === 'yearly' ? '#6366f1' : 'transparent',
-              color: 'white',
-              height: '28px',
-            }}
-          >
-            Current FY
-          </button>
-          
-          <div style={{ position: 'relative' }}>
-            <select
-              value={period === 'yearly' ? 'default' : period}
-              onChange={(e) => {
-                if (e.target.value !== 'default') {
-                  setPeriod(e.target.value)
-                }
-              }}
-              style={{
-                padding: '0.25rem 1.75rem 0.25rem 0.75rem',
-                fontSize: '0.75rem',
-                borderRadius: '6px',
-                border: '1px solid',
-                cursor: 'pointer',
-                borderColor: period !== 'yearly' ? '#6366f1' : '#404040',
-                background: period !== 'yearly' ? '#6366f1' : 'transparent',
-                color: 'white',
-                appearance: 'none',
-                height: '28px',
-                outline: 'none',
-              }}
-            >
-              <option value="default" disabled style={{ background: '#1a1a1a', color: 'white' }}>Select Month</option>
-              {allMonthsWeeklyData?.map((m) => (
-                <option key={m.monthName} value={m.monthName} style={{ background: '#1a1a1a', color: 'white' }}>
-                  {m.monthName}
-                </option>
-              ))}
-            </select>
-            <ChevronDown 
-              size={14} 
-              style={{ 
-                position: 'absolute', 
-                right: '6px', 
-                top: '50%', 
-                transform: 'translateY(-50%)', 
-                pointerEvents: 'none',
-                color: 'white'
-              }} 
-            />
-          </div>
         </div>
       </div>
 
