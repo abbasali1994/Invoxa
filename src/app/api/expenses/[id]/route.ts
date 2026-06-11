@@ -79,6 +79,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         paymentMethod: body.paymentMethod,
         notes: body.notes,
         lineItems: body.lineItems,
+        receiptUrl: body.receiptUrl,
       }
     });
     return NextResponse.json(expense);

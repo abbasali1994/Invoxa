@@ -10,7 +10,7 @@ import { DateRangePicker } from "@/components/ui/DateRangePicker";
 
 export default function ExpensesPage() {
   const router = useRouter();
-  const { expenses, counts, activeTab, setActiveTab, handleDelete, handleShare, dateRange, setDateRange } = useExpenses();
+  const { expenses, counts, activeTab, setActiveTab, handleDelete, handleShare, dateRange, setDateRange, searchQuery, setSearchQuery } = useExpenses();
 
   return (
     <div className="space-y-6">
@@ -34,7 +34,13 @@ export default function ExpensesPage() {
         <div className="p-4 border-b border-neutral-800 flex gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-            <input type="text" placeholder="Search vendor..." className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 pl-9 pr-4 text-sm" />
+            <input 
+              type="text" 
+              placeholder="Search vendor, expense number, category..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 pl-9 pr-4 text-sm" 
+            />
           </div>
           <button className="flex items-center px-4 border border-neutral-800 bg-neutral-950 rounded-md text-sm"><Filter className="w-4 h-4 mr-2" /> Filter</button>
         </div>

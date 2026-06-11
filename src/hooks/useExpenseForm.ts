@@ -25,6 +25,7 @@ export const expenseSchema = z.object({
   taxRate: z.number().nullish().transform(v => v ?? 0),
   paymentMethod: z.string().nullish(),
   paidFromAccountId: z.string().nullish(),
+  receiptUrl: z.string().nullish(),
 });
 
 export type ExpenseFormValues = z.infer<typeof expenseSchema>;
@@ -45,6 +46,7 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
     currency: initialData.currency || "INR",
     category: initialData.category || "",
     vendor: initialData.vendor || "",
+    receiptUrl: initialData.receiptUrl || "",
   } : {
     vendor: "",
     expenseNumber: "",
@@ -53,7 +55,8 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
     currency: "INR",
     isRecurring: false,
     taxRate: 0,
-    lineItems: [{ description: "", hours: 1, cost: 0, amount: 0, isSection: false }]
+    lineItems: [{ description: "", hours: 1, cost: 0, amount: 0, isSection: false }],
+    receiptUrl: "",
   };
 
   const methods = useForm<ExpenseFormValues>({
