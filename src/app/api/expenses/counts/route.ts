@@ -30,12 +30,15 @@ export async function GET() {
       } 
     });
 
+    const totalCount = await prisma.expense.count({ where: { workspaceId } });
+
     return NextResponse.json({
       all,
       saved,
       draft,
       recurring,
-      overdue
+      overdue,
+      nextNumber: `EXP-${new Date().getFullYear()}-${String(totalCount + 1).padStart(4, '0')}`
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch counts' }, { status: 500 });

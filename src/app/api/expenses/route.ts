@@ -23,6 +23,12 @@ export async function POST(request: NextRequest) {
     const sevenDaysAgo = new Date(dateObj.getTime() - 7 * 24 * 60 * 60 * 1000);
     const sevenDaysFuture = new Date(dateObj.getTime() + 7 * 24 * 60 * 60 * 1000);
 
+    let expenseNumber = body.expenseNumber;
+    if (!expenseNumber) {
+      const count = await prisma.expense.count({ where: { workspaceId } });
+      expenseNumber = `EXP-${dateObj.getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    }
+
     const amountNum = parseFloat(body.amount);
     const lowerBound = amountNum * 0.95;
     const upperBound = amountNum * 1.05;
@@ -39,7 +45,7 @@ export async function POST(request: NextRequest) {
     const expense = await prisma.expense.create({
       data: {
         vendor: body.vendor,
-        expenseNumber: body.expenseNumber || undefined,
+        expenseNumber: expenseNumber,
         amount: amountNum,
         subtotal: body.subtotal,
         total: body.total,
