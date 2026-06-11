@@ -1,14 +1,10 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { aiService } from '@/lib/ai-service';
-import fs from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
     let text = '';
-    let receiptUrl = '';
     const contentType = request.headers.get('content-type') || '';
 
     if (contentType.includes('multipart/form-data')) {
@@ -22,14 +18,6 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const base64Content = buffer.toString('base64');
       const apiKey = process.env.GOOGLE_VISION_API_KEY;
-
-      // Save file locally
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'receipts');
-      await fs.mkdir(uploadDir, { recursive: true });
-      const ext = file.name.split('.').pop() || 'tmp';
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      await fs.writeFile(path.join(uploadDir, filename), buffer);
-      receiptUrl = `/uploads/receipts/${filename}`;
 
       if (!apiKey) {
         return NextResponse.json({ error: 'Google Vision API key not configured' }, { status: 500 });
@@ -114,7 +102,7 @@ Text: ${text}`;
       confidence: number;
     }>(prompt);
 
-    return NextResponse.json({ ...structuredData, receiptUrl });
+    return NextResponse.json(structuredData);
   } catch (error) {
     console.error('Extraction error:', error);
     return NextResponse.json({ message: 'Extraction failed', error }, { status: 500 });
