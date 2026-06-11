@@ -27,8 +27,9 @@ export function useSettings() {
   const [showAddMethod, setShowAddMethod] = useState(false);
   const [editingMethodId, setEditingMethodId] = useState<string | null>(null);
   const [newMethod, setNewMethod] = useState({
-    name: '', type: PaymentMethod.BANK_TRANSFER, instructions: '',
-    bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: ''
+    name: '', type: PaymentMethod.BANK_TRANSFER as string, instructions: '',
+    bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: '',
+    customFields: [] as { key: string; value: string }[]
   });
 
   useEffect(() => {
@@ -48,7 +49,25 @@ export function useSettings() {
     if (storedMethods) {
       try { 
         const parsed = JSON.parse(storedMethods);
-        const customMethods = parsed.filter((m: any) => !m.builtin);
+        const customMethods = parsed.map((m: any) => {
+          let t = m.type;
+          if (t === 'Bank Transfer') t = 'BANK_TRANSFER';
+          if (t === 'Crypto (Token Transfer)' || t === 'Crypto') t = 'CRYPTO';
+          if (t === 'Cash') t = 'CASH';
+
+          let customFields = m.customFields;
+          if (t === 'BANK_TRANSFER' && !customFields) {
+            customFields = [
+              { key: 'Account Name', value: m.bankAccountName || '' },
+              { key: 'Account Number', value: m.accountNumber || '' },
+              { key: 'Bank Name', value: m.bankName || '' },
+              { key: 'IFSC Code', value: m.ifscCode || '' },
+              { key: 'SWIFT Code', value: m.swiftCode || '' }
+            ];
+          }
+
+          return { ...m, type: t, customFields };
+        }).filter((m: any) => !m.builtin);
         setPaymentMethods([...DEFAULT_PAYMENT_METHODS, ...customMethods]);
       } catch {}
     }
@@ -66,17 +85,55 @@ export function useSettings() {
 
   const addPaymentMethod = () => {
     if (!newMethod.name.trim()) return;
+
+    let canonicalType = newMethod.type;
+    if (canonicalType === 'Bank Transfer') canonicalType = 'BANK_TRANSFER';
+    if (canonicalType === 'Crypto (Token Transfer)' || canonicalType === 'Crypto') canonicalType = 'CRYPTO';
+    if (canonicalType === 'Cash') canonicalType = 'CASH';
+
+    let bankAccountName = newMethod.bankAccountName;
+    let accountNumber = newMethod.accountNumber;
+    let bankName = newMethod.bankName;
+    let ifscCode = newMethod.ifscCode;
+    let swiftCode = newMethod.swiftCode;
+
+    if (canonicalType === 'BANK_TRANSFER' && Array.isArray(newMethod.customFields)) {
+      const getVal = (keys: string[]) => {
+        const found = newMethod.customFields.find((f: any) => 
+          keys.some(k => f.key?.toLowerCase().trim() === k.toLowerCase())
+        );
+        return found ? found.value : '';
+      };
+
+      bankAccountName = getVal(['account name', 'name']);
+      accountNumber = getVal(['account number', 'account no', 'a/c', 'a/c no']);
+      bankName = getVal(['bank name', 'bank']);
+      ifscCode = getVal(['ifsc code', 'ifsc']);
+      swiftCode = getVal(['swift code', 'swift']);
+    }
+
+    const normalizedMethod = { 
+      ...newMethod, 
+      type: canonicalType,
+      bankAccountName,
+      accountNumber,
+      bankName,
+      ifscCode,
+      swiftCode
+    };
+
     let updated;
     if (editingMethodId) {
-      updated = paymentMethods.map(m => m.id === editingMethodId ? { ...newMethod, id: editingMethodId, builtin: false } : m);
+      updated = paymentMethods.map(m => m.id === editingMethodId ? { ...normalizedMethod, id: editingMethodId, builtin: false } : m);
     } else {
-      updated = [...paymentMethods, { ...newMethod, id: `custom-${Date.now()}`, builtin: false }];
+      updated = [...paymentMethods, { ...normalizedMethod, id: `custom-${Date.now()}`, builtin: false }];
     }
     setPaymentMethods(updated);
     localStorage.setItem('invoxa_payment_methods', JSON.stringify(updated));
     setNewMethod({
-      name: '', type: PaymentMethod.BANK_TRANSFER, instructions: '',
+      name: '', type: PaymentMethod.BANK_TRANSFER as string, instructions: '',
       bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: '',
+      customFields: [] as { key: string; value: string }[]
     });
     setShowAddMethod(false);
     setEditingMethodId(null);

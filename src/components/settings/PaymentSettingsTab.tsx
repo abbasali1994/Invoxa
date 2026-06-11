@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Trash2, Pencil } from "lucide-react";
+import { PAYMENT_METHOD_LABELS, PaymentMethod } from "@/lib/paymentMethods";
 
 export function PaymentSettingsTab({ 
   paymentMethods, showAddMethod, setShowAddMethod, newMethod, setNewMethod, 
@@ -22,7 +23,13 @@ export function PaymentSettingsTab({
           <h5 className="text-sm font-medium text-indigo-300">{editingMethodId ? 'Edit Payment Method' : 'New Payment Method'}</h5>
           <input
             type="text"
-            placeholder="Name (e.g. HDFC Bank)"
+            placeholder={
+              newMethod.type === 'CRYPTO' || newMethod.type === 'Crypto' || newMethod.type === 'Crypto (Token Transfer)'
+                ? "Name (e.g. My Wallet)"
+                : newMethod.type === 'CASH' || newMethod.type === 'Cash'
+                ? "Name (e.g. Office Cash)"
+                : "Name (e.g. HDFC Bank)"
+            }
             value={newMethod.name}
             onChange={(e) => setNewMethod({ ...newMethod, name: e.target.value })}
             className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500"
@@ -33,16 +40,81 @@ export function PaymentSettingsTab({
             className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none cursor-not-allowed opacity-70"
             disabled
           >
-            {uniqueTypes.map(t => <option key={t as string} value={t as string}>{t as string}</option>)}
+            {uniqueTypes.map(t => <option key={t as string} value={t as string}>{PAYMENT_METHOD_LABELS[t as PaymentMethod] || (t as string)}</option>)}
           </select>
 
-          {newMethod.type === 'Bank Transfer' ? (
+          {newMethod.type === 'BANK_TRANSFER' || newMethod.type === 'Bank Transfer' ? (
             <div className="space-y-3 p-3 bg-neutral-900/30 rounded-lg border border-neutral-800">
-              <input type="text" placeholder="Account Name (e.g. John Doe)" value={newMethod.bankAccountName || ''} onChange={e => setNewMethod({...newMethod, bankAccountName: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
-              <input type="text" placeholder="Account Number" value={newMethod.accountNumber || ''} onChange={e => setNewMethod({...newMethod, accountNumber: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
-              <input type="text" placeholder="Bank Name (e.g. HDFC Bank)" value={newMethod.bankName || ''} onChange={e => setNewMethod({...newMethod, bankName: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
-              <input type="text" placeholder="IFSC Code" value={newMethod.ifscCode || ''} onChange={e => setNewMethod({...newMethod, ifscCode: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
-              <input type="text" placeholder="SWIFT Code" value={newMethod.swiftCode || ''} onChange={e => setNewMethod({...newMethod, swiftCode: e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
+              <div className="text-xs font-semibold text-neutral-400 mb-1">Bank Details (Key-Value Pairs)</div>
+              {Array.isArray(newMethod.customFields) && newMethod.customFields.map((field: any, index: number) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="Key (e.g. Account No)"
+                    value={field.key}
+                    onChange={(e) => {
+                      const updatedFields = [...newMethod.customFields];
+                      updatedFields[index].key = e.target.value;
+                      setNewMethod({ ...newMethod, customFields: updatedFields });
+                    }}
+                    className="flex-1 bg-neutral-950 border border-neutral-700 rounded-md px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <span className="text-neutral-500">----</span>
+                  <input
+                    type="text"
+                    placeholder="Value"
+                    value={field.value}
+                    onChange={(e) => {
+                      const updatedFields = [...newMethod.customFields];
+                      updatedFields[index].value = e.target.value;
+                      setNewMethod({ ...newMethod, customFields: updatedFields });
+                    }}
+                    className="flex-[1.5] bg-neutral-950 border border-neutral-700 rounded-md px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <button
+                    onClick={() => {
+                      const updatedFields = newMethod.customFields.filter((_: any, i: number) => i !== index);
+                      setNewMethod({ ...newMethod, customFields: updatedFields });
+                    }}
+                    className="p-1.5 hover:bg-neutral-805 rounded text-neutral-500 hover:text-rose-400 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  const updatedFields = [...(newMethod.customFields || []), { key: '', value: '' }];
+                  setNewMethod({ ...newMethod, customFields: updatedFields });
+                }}
+                className="w-full flex items-center justify-center py-1.5 border border-dashed border-neutral-800 hover:border-neutral-700 rounded text-xs text-neutral-400 hover:text-white transition-colors"
+              >
+                <Plus className="w-3 h-3 mr-1" /> Add Detail Row
+              </button>
+            </div>
+          ) : newMethod.type === 'CRYPTO' || newMethod.type === 'Crypto' || newMethod.type === 'Crypto (Token Transfer)' ? (
+            <div className="space-y-3 p-3 bg-neutral-900/30 rounded-lg border border-neutral-800">
+              <select
+                value={newMethod.bankAccountName || ''}
+                onChange={e => setNewMethod({...newMethod, bankAccountName: e.target.value})}
+                className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="">Select Network...</option>
+                <option value="TRC20 (Tron)">TRC20 (Tron)</option>
+                <option value="ERC20 (Ethereum)">ERC20 (Ethereum)</option>
+                <option value="BEP20 (BNB Smart Chain)">BEP20 (BNB Smart Chain)</option>
+                <option value="Polygon">Polygon</option>
+                <option value="Solana">Solana</option>
+                <option value="Arbitrum">Arbitrum</option>
+              </select>
+              <input 
+                type="text" 
+                placeholder="Wallet Address (0x...)" 
+                value={newMethod.accountNumber || ''} 
+                onChange={e => setNewMethod({...newMethod, accountNumber: e.target.value})} 
+                className="w-full bg-neutral-950 border border-neutral-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 font-mono" 
+              />
             </div>
           ) : (
             <textarea
@@ -62,21 +134,28 @@ export function PaymentSettingsTab({
       <div className="space-y-4">
         {uniqueTypes.map((type) => {
           const typeMethods = paymentMethods.filter((m: any) => m.type === type);
-          const visibleMethods = typeMethods.filter((m: any) => !(m.builtin && m.name === m.type));
+          const visibleMethods = typeMethods.filter((m: any) => !m.builtin);
           
           return (
             <div key={type as string} className="border border-neutral-800 rounded-lg overflow-hidden">
               <div className="bg-neutral-900/50 p-3 flex justify-between items-center border-b border-neutral-800">
-                <h5 className="font-medium text-sm text-neutral-200">{type as string}</h5>
+                <h5 className="font-medium text-sm text-neutral-200">{PAYMENT_METHOD_LABELS[type as PaymentMethod] || (type as string)}</h5>
                 <button 
                   onClick={() => { 
                     setShowAddMethod(true); 
                     setIsCustomType(false); 
-                    setNewMethod({name: '', type: type as string, instructions: '', bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: ''}); 
+                    const defaultFields = type === 'BANK_TRANSFER' ? [
+                      { key: 'Account Name', value: '' },
+                      { key: 'Account Number', value: '' },
+                      { key: 'Bank Name', value: '' },
+                      { key: 'IFSC Code', value: '' },
+                      { key: 'SWIFT Code', value: '' }
+                    ] : [];
+                    setNewMethod({name: '', type: type as string, instructions: '', bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: '', customFields: defaultFields}); 
                     setEditingMethodId(null);
                   }} 
                   className="p-1 hover:bg-neutral-700 rounded transition-colors text-neutral-400 hover:text-white"
-                  title={`Add ${type}`}
+                  title={`Add ${PAYMENT_METHOD_LABELS[type as PaymentMethod] || type}`}
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -89,10 +168,25 @@ export function PaymentSettingsTab({
                     <div key={m.id} className="flex items-center justify-between p-3">
                       <div>
                         <p className="text-sm font-medium">{m.name}</p>
-                        {m.type === 'Bank Transfer' && m.bankAccountName ? (
+                        {m.type === 'BANK_TRANSFER' || m.type === 'Bank Transfer' ? (
                           <div className="text-xs text-neutral-400 mt-1 space-y-0.5">
-                            <p>{m.bankName} - {m.accountNumber}</p>
-                            <p>{m.bankAccountName} | IFSC: {m.ifscCode}{m.swiftCode ? ` | SWIFT: ${m.swiftCode}` : ''}</p>
+                            {Array.isArray(m.customFields) && m.customFields.length > 0 ? (
+                              m.customFields.map((f: any, idx: number) => (
+                                f.key && f.value ? (
+                                  <p key={idx}>{f.key} : {f.value}</p>
+                                ) : null
+                              ))
+                            ) : (
+                              <>
+                                <p>{m.bankName} - {m.accountNumber}</p>
+                                <p>{m.bankAccountName} | IFSC: {m.ifscCode}{m.swiftCode ? ` | SWIFT: ${m.swiftCode}` : ''}</p>
+                              </>
+                            )}
+                          </div>
+                        ) : m.type === 'CRYPTO' || m.type === 'Crypto' || m.type === 'Crypto (Token Transfer)' ? (
+                          <div className="text-xs text-neutral-400 mt-1 space-y-0.5 font-mono">
+                            <p>Network: {m.bankAccountName}</p>
+                            <p>Wallet Address: {m.accountNumber}</p>
                           </div>
                         ) : m.instructions ? (
                           <p className="text-xs text-neutral-600 mt-0.5">{m.instructions}</p>
