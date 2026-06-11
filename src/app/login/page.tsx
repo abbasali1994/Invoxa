@@ -245,7 +245,7 @@ export default function LoginPage() {
             position: 'relative',
             zIndex: 3,
           }}>
-            Invoxa
+            Settlr
           </div>
           <div ref={logoRRef} style={{
             fontSize: '5rem',
@@ -259,7 +259,7 @@ export default function LoginPage() {
             zIndex: 2,
             clipPath: 'inset(0 0 55% 0)',
           }}>
-            Invoxa
+            Settlr
           </div>
           <div ref={logoBRef} style={{
             fontSize: '5rem',
@@ -273,7 +273,7 @@ export default function LoginPage() {
             zIndex: 2,
             clipPath: 'inset(45% 0 0 0)',
           }}>
-            Invoxa
+            Settlr
           </div>
         </div>
         <div ref={taglineRef} style={{

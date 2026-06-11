@@ -44,7 +44,7 @@ export const recurringWorker = new Worker(QUEUES.RECURRING_WORKFLOWS, async (job
     const { invoiceId, email } = job.data;
     
     await transporter.sendMail({
-      from: '"Invoxa Billing" <billing@invoxa.com>',
+      from: '"Settlr Billing" <billing@settlr.com>',
       to: email,
       subject: 'Payment Reminder: Invoice Due Soon',
       text: `This is a reminder that your invoice ${invoiceId} is due in 3 days.`,

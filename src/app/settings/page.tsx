@@ -1,11 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSettings, TABS } from '@/hooks/useSettings'
 import { GeneralSettingsTab } from '@/components/settings/GeneralSettingsTab'
 import { PaymentSettingsTab } from '@/components/settings/PaymentSettingsTab'
 import { TeamSettingsTab } from '@/components/settings/TeamSettingsTab'
 
-export default function SettingsPage() {
+function SettingsContent() {
   const settings = useSettings()
   const { activeTab, setActiveTab } = settings
 
@@ -17,7 +18,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 flex flex-col min-h-[500px]">
-        {/* Tab Bar */}
         <div className="flex border-b border-neutral-800 px-4">
           {TABS.map((tab) => (
             <button
@@ -41,5 +41,13 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense>
+      <SettingsContent />
+    </Suspense>
   )
 }

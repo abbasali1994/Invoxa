@@ -34,7 +34,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     <>
       <div className="h-16 flex items-center justify-between px-6 border-b border-neutral-800 shrink-0">
         <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-          Invoxa
+          Settlr
         </h1>
         {onClose && (
           <button onClick={onClose} className="md:hidden p-1 text-neutral-400 hover:text-white rounded transition-colors">
@@ -149,7 +149,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="relative hidden sm:block">
               <input
                 type="text"
-                placeholder="Search across Invoxa... (Cmd+K)"
+                placeholder="Search across Settlr... (Cmd+K)"
                 disabled
                 className="w-72 bg-neutral-900 border border-neutral-800 rounded-md py-2 px-4 text-sm text-neutral-400 cursor-not-allowed opacity-70"
               />
