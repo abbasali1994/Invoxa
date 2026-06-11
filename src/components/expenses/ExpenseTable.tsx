@@ -67,6 +67,7 @@ export function ExpenseTable({ expenses, handleDelete, handleShare }: { expenses
       <table className="w-full text-sm text-left">
         <thead className="text-xs uppercase bg-neutral-950/30 text-neutral-500 border-b border-neutral-800">
           <tr>
+            <th className="px-5 py-3 font-medium">Expense No</th>
             <th className="px-5 py-3 font-medium">
               <button onClick={() => handleSort('date')} className="flex items-center gap-1 group hover:text-neutral-300 transition-colors">
                 Date {renderSortIcon('date')}
@@ -90,6 +91,7 @@ export function ExpenseTable({ expenses, handleDelete, handleShare }: { expenses
         <tbody className="divide-y divide-neutral-800">
           {sortedExpenses.map(e => (
             <tr key={e.id} onClick={() => router.push(`/expenses/${e.id}`)} className="hover:bg-neutral-800/30 transition-colors cursor-pointer group">
+              <td className="px-5 py-4 font-medium text-white">{e.expenseNumber || '-'}</td>
               <td className="px-5 py-4 text-neutral-400">{format(new Date(e.date), 'MMM d, yyyy')}</td>
               <td className="px-5 py-4 font-medium flex items-center gap-2">
                 <Receipt className="w-4 h-4 text-neutral-500" /> {e.vendor}
@@ -130,7 +132,7 @@ export function ExpenseTable({ expenses, handleDelete, handleShare }: { expenses
           ))}
           {expenses.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-5 py-12 text-center text-neutral-500 flex-col items-center flex">
+              <td colSpan={7} className="px-5 py-12 text-center text-neutral-500 flex-col items-center flex">
                 <Receipt className="w-8 h-8 text-neutral-700 mb-3" />
                 No expenses found.
               </td>

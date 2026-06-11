@@ -13,6 +13,10 @@ export function ExpenseMetaForm({ accounts }: { accounts: any[] }) {
         {(errors.vendor as any) && <p className="text-rose-500 text-xs mt-1">{(errors.vendor as any).message}</p>}
       </div>
       <div>
+        <label className="block text-sm font-medium text-neutral-300 mb-1">Expense No.</label>
+        <input type="text" {...register("expenseNumber")} className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
+      </div>
+      <div>
         <label className="block text-sm font-medium text-neutral-300 mb-1">Date</label>
         <DatePicker {...register("date")} value={watch("date") || ""} />
       </div>
