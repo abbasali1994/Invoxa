@@ -117,6 +117,6 @@ Text: ${text}`;
     return NextResponse.json({ ...structuredData, receiptUrl });
   } catch (error) {
     console.error('Extraction error:', error);
-    return NextResponse.json({ error: 'Extraction failed' }, { status: 500 });
+    return NextResponse.json({ message: 'Extraction failed', error }, { status: 500 });
   }
 }
