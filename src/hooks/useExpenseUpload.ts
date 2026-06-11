@@ -10,6 +10,10 @@ export function useExpenseUpload() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Create a local blob URL so the edit page can show the original file
+    // without needing server-side storage (not available on Vercel).
+    const blobUrl = URL.createObjectURL(file);
+
     try {
       setIsProcessing(true);
       toast.info("Scanning document...");
@@ -23,9 +27,9 @@ export function useExpenseUpload() {
       });
 
       if (!res.ok) throw new Error("AI Extraction failed");
-      
+
       const structured = await res.json();
-      
+
       const expenseRes = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,7 +52,12 @@ export function useExpenseUpload() {
 
       if (!expenseRes.ok) throw new Error("Failed to auto-create expense");
       const newExpense = await expenseRes.json();
-      
+
+      sessionStorage.setItem(
+        `receipt_preview_${newExpense.id}`,
+        JSON.stringify({ url: blobUrl, type: file.type })
+      );
+
       toast.success("Expense auto-created! Redirecting...");
       router.push(`/expenses/${newExpense.id}/edit`);
     } catch (error) {

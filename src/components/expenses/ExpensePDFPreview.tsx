@@ -10,7 +10,10 @@ const PDFViewer = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PD
 
 export function ExpensePDFPreview({ previewData }: { previewData: any }) {
   const hasReceipt = !!previewData?.receiptUrl;
-  const isImage = hasReceipt && /\.(jpg|jpeg|png|gif|webp)$/i.test(previewData.receiptUrl);
+  const isImage = hasReceipt && (
+    previewData.receiptMimeType?.startsWith('image/') ||
+    /\.(jpg|jpeg|png|gif|webp)$/i.test(previewData.receiptUrl)
+  );
 
   return (
     <div className="hidden lg:flex rounded-xl border border-neutral-800 bg-neutral-900/50 flex-col overflow-hidden h-[900px]">

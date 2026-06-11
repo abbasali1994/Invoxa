@@ -34,6 +34,8 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
+  const [uploadedReceiptUrl, setUploadedReceiptUrl] = useState<string | null>(null);
+  const [uploadedReceiptType, setUploadedReceiptType] = useState<string | null>(null);
 
   const defaultValues = initialData ? {
     ...initialData,
@@ -77,6 +79,19 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
   useEffect(() => {
     fetch('/api/accounts').then(res => res.json()).then(data => { if(Array.isArray(data)) setAccounts(data); }).catch(()=>{});
   }, []);
+
+  useEffect(() => {
+    if (!initialData?.id) return;
+    const key = `receipt_preview_${initialData.id}`;
+    const stored = sessionStorage.getItem(key);
+    if (!stored) return;
+    try {
+      const { url, type } = JSON.parse(stored);
+      setUploadedReceiptUrl(url);
+      setUploadedReceiptType(type);
+      sessionStorage.removeItem(key);
+    } catch {}
+  }, [initialData?.id]);
 
   useEffect(() => {
     if (isEdit || initialData) return;
@@ -164,7 +179,15 @@ export function useExpenseForm(initialData?: any, isEdit = false) {
     }
   };
 
-  const previewData = { ...watch(), subtotal, total, amount: total, account: accounts.find(a => a.id === watch('accountId')) };
+  const previewData = {
+    ...watch(),
+    subtotal,
+    total,
+    amount: total,
+    account: accounts.find(a => a.id === watch('accountId')),
+    receiptUrl: uploadedReceiptUrl || watch('receiptUrl'),
+    receiptMimeType: uploadedReceiptType,
+  };
 
   return { methods, onSubmit, isSaving, accounts, subtotal, total, previewData };
 }
