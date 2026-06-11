@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
         deletedAt: null,
         ...(dateFilter ? { createdAt: dateFilter } : {}),
       },
-      select: { total: true },
+      select: { total: true, createdAt: true },
     })
     const cryptoUnsettled = cryptoInvoices.reduce((sum, inv) => sum + inv.total, 0)
 
@@ -89,21 +89,24 @@ export async function GET(request: NextRequest) {
     const baseDate = fromParam ? new Date(fromParam + 'T00:00:00') : new Date()
     const months = getFYMonths(baseDate)
     const yearlyData = months.map(({ label, start, end }) => {
-      const inRange = settlements.filter(s => {
+      const inRangeSettlements = settlements.filter(s => {
         if (!s.settledAt) return false
         const d = new Date(s.settledAt)
         return d >= start && d <= end
       })
 
+      const inRangeCrypto = cryptoInvoices.filter(inv => {
+        const d = new Date(inv.createdAt)
+        return d >= start && d <= end
+      })
+
       return {
         month: label,
-        bankTransfer: Math.round(inRange
+        bankTransfer: Math.round(inRangeSettlements
           .filter(s => BANK_METHODS.includes(s.paymentMethod?.toUpperCase() || ''))
           .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)),
-        crypto: Math.round(inRange
-          .filter(s => CRYPTO_METHODS.includes(s.paymentMethod?.toUpperCase() || ''))
-          .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)),
-        cash: Math.round(inRange
+        crypto: Math.round(inRangeCrypto.reduce((sum, inv) => sum + inv.total, 0)),
+        cash: Math.round(inRangeSettlements
           .filter(s => CASH_METHODS.includes(s.paymentMethod?.toUpperCase() || ''))
           .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)),
       }
@@ -113,21 +116,24 @@ export async function GET(request: NextRequest) {
     const allMonthsWeeklyData = months.map(({ label, year, month }) => {
       const weeks = getMonthWeeks(year, month)
       const weeksData = weeks.map((w) => {
-        const inRange = settlements.filter(s => {
+        const inRangeSettlements = settlements.filter(s => {
           if (!s.settledAt) return false
           const d = new Date(s.settledAt)
           return d >= w.start && d <= w.end
         })
 
+        const inRangeCrypto = cryptoInvoices.filter(inv => {
+          const d = new Date(inv.createdAt)
+          return d >= w.start && d <= w.end
+        })
+
         return {
           month: w.label,
-          bankTransfer: Math.round(inRange
+          bankTransfer: Math.round(inRangeSettlements
             .filter(s => BANK_METHODS.includes(s.paymentMethod?.toUpperCase() || ''))
             .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)),
-          crypto: Math.round(inRange
-            .filter(s => CRYPTO_METHODS.includes(s.paymentMethod?.toUpperCase() || ''))
-            .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)),
-          cash: Math.round(inRange
+          crypto: Math.round(inRangeCrypto.reduce((sum, inv) => sum + inv.total, 0)),
+          cash: Math.round(inRangeSettlements
             .filter(s => CASH_METHODS.includes(s.paymentMethod?.toUpperCase() || ''))
             .reduce((sum, s) => sum + (s.actualInrReceived || 0), 0)),
         }
