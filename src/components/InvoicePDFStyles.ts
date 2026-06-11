@@ -31,5 +31,9 @@ export const invoiceStyles = StyleSheet.create({
   paymentTitle: { fontWeight: 'bold', fontSize: 10, marginBottom: 10 },
   paymentRow: { flexDirection: 'row', marginBottom: 3 },
   paymentLabel: { width: 120, fontWeight: 'bold' },
-  paymentValue: { flex: 1 }
+  paymentValue: { flex: 1 },
+  paymentMethodTitle: { fontWeight: 'bold', fontSize: 10, marginBottom: 6 },
+  paymentDetailRow: { flexDirection: 'row', marginLeft: 15, marginBottom: 3 },
+  paymentDetailKey: { fontWeight: 'bold', marginRight: 4 },
+  paymentDetailVal: { color: '#333' }
 });

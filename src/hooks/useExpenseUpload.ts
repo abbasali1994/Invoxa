@@ -25,10 +25,32 @@ export function useExpenseUpload() {
       if (!res.ok) throw new Error("AI Extraction failed");
       
       const structured = await res.json();
-      sessionStorage.setItem('ai_expense_data', JSON.stringify(structured));
       
-      toast.success("Data ready! Redirecting...");
-      router.push('/expenses/new');
+      const expenseRes = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...structured,
+          amount: structured.amount || 0,
+          currency: structured.currency || "USD",
+          total: structured.amount || 0,
+          subtotal: structured.amount || 0,
+          lineItems: [{
+            description: structured.category || "Expense Item",
+            hours: 1,
+            cost: structured.amount || 0,
+            amount: structured.amount || 0,
+            isSection: false
+          }],
+          status: 'SAVED'
+        })
+      });
+
+      if (!expenseRes.ok) throw new Error("Failed to auto-create expense");
+      const newExpense = await expenseRes.json();
+      
+      toast.success("Expense auto-created! Redirecting...");
+      router.push(`/expenses/${newExpense.id}/edit`);
     } catch (error) {
       console.error(error);
       toast.error("Failed to process document");

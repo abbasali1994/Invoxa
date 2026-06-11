@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
         paymentMethod: body.paymentMethod || undefined,
         notes: body.notes || undefined,
         lineItems: body.lineItems || [],
+        receiptUrl: body.receiptUrl || undefined,
         aiCategorized: false,
         workspaceId,
       }
@@ -111,6 +112,7 @@ export async function GET(request: NextRequest) {
     const isRecurring = url.searchParams.get('isRecurring') === 'true';
     const from = url.searchParams.get('from');
     const to = url.searchParams.get('to');
+    const search = url.searchParams.get('search');
 
     let where: any = { deletedAt: null, workspaceId };
 
@@ -120,7 +122,14 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    if (from && to) {
+    if (search) {
+      where.OR = [
+        { vendor: { contains: search, mode: 'insensitive' } },
+        { expenseNumber: { contains: search, mode: 'insensitive' } },
+        { category: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } }
+      ];
+    } else if (from && to) {
       where.date = { gte: new Date(from), lte: new Date(to) };
     }
 

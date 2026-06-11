@@ -8,13 +8,15 @@ export function useExpenses() {
   const [counts, setCounts] = useState({ all: 0, saved: 0, draft: 0, recurring: 0, overdue: 0 });
   const [activeTab, setActiveTab] = useState<'all' | 'saved' | 'draft' | 'recurring' | 'overdue'>('all');
   const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchExpenses = (tab: string, range: DateRange) => {
+  const fetchExpenses = (tab: string, range: DateRange, search: string) => {
     const params = new URLSearchParams({ from: range.from, to: range.to });
     if (tab === 'saved') params.set('status', 'SAVED');
     if (tab === 'draft') params.set('status', 'DRAFT');
     if (tab === 'recurring') params.set('isRecurring', 'true');
     if (tab === 'overdue') params.set('isRecurring', 'true');
+    if (search) params.set('search', search);
 
     fetch(`/api/expenses?${params}`).then(res=>res.json()).then(data => {if(Array.isArray(data)) setExpenses(data);});
   };
@@ -24,9 +26,9 @@ export function useExpenses() {
   };
 
   useEffect(() => {
-    fetchExpenses(activeTab, dateRange);
+    fetchExpenses(activeTab, dateRange, searchQuery);
     fetchCounts();
-  }, [activeTab, dateRange]);
+  }, [activeTab, dateRange, searchQuery]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this expense? This cannot be undone.')) return;
@@ -48,5 +50,5 @@ export function useExpenses() {
     }
   };
 
-  return { expenses, counts, activeTab, setActiveTab, handleDelete, handleShare, dateRange, setDateRange };
+  return { expenses, counts, activeTab, setActiveTab, handleDelete, handleShare, dateRange, setDateRange, searchQuery, setSearchQuery };
 }
