@@ -73,19 +73,98 @@ export const InvoicePDFDocument = ({ data, clientName }: { data: any, clientName
         </View>
 
         <View style={styles.paymentContainer}>
-          <Text style={styles.paymentTitle}>INVOICE ADDRESS:</Text>
+          <Text style={styles.paymentMethodTitle}>Payment Method:</Text>
           
-          <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>Payment Method</Text>
-            <View style={styles.paymentValue}>
-              <Text>{data.paymentMethod || '[method]'}</Text>
-              {data.bankAccountName ? <Text>Bank Account Name: {data.bankAccountName}</Text> : null}
-              {data.bankName ? <Text>Bank Name: {data.bankName}</Text> : null}
-              {data.accountNumber ? <Text>Account number: {data.accountNumber}</Text> : null}
-              {data.ifscCode ? <Text>IFSC code: {data.ifscCode}</Text> : null}
-              {data.swiftCode ? <Text>SWIFT code: {data.swiftCode}</Text> : null}
-            </View>
-          </View>
+          {data.paymentMethod === 'BANK_TRANSFER' || data.paymentMethod === 'Bank Transfer' ? (
+            <>
+              {(() => {
+                let customFields = [];
+                try {
+                  if (Array.isArray(data.bankAccountName)) {
+                    customFields = data.bankAccountName;
+                  } else if (typeof data.bankAccountName === 'string') {
+                    const trimmed = data.bankAccountName.trim();
+                    if (trimmed.startsWith('[')) {
+                      customFields = JSON.parse(trimmed);
+                    }
+                  }
+                } catch {}
+
+                if (customFields.length > 0) {
+                  return customFields.map((f: any, idx: number) => (
+                    f.key && f.value ? (
+                      <View key={idx} style={styles.paymentDetailRow}>
+                        <Text style={styles.paymentDetailKey}>{f.key}:</Text>
+                        <Text style={styles.paymentDetailVal}>{f.value}</Text>
+                      </View>
+                    ) : null
+                  ));
+                }
+
+                // Fallback to static fields
+                return (
+                  <>
+                    {data.bankAccountName ? (
+                      <View style={styles.paymentDetailRow}>
+                        <Text style={styles.paymentDetailKey}>Bank Account Name:</Text>
+                        <Text style={styles.paymentDetailVal}>{data.bankAccountName}</Text>
+                      </View>
+                    ) : null}
+                    {data.bankName ? (
+                      <View style={styles.paymentDetailRow}>
+                        <Text style={styles.paymentDetailKey}>Bank Name:</Text>
+                        <Text style={styles.paymentDetailVal}>{data.bankName}</Text>
+                      </View>
+                    ) : null}
+                    {data.accountNumber ? (
+                      <View style={styles.paymentDetailRow}>
+                        <Text style={styles.paymentDetailKey}>Account number:</Text>
+                        <Text style={styles.paymentDetailVal}>{data.accountNumber}</Text>
+                      </View>
+                    ) : null}
+                    {data.ifscCode ? (
+                      <View style={styles.paymentDetailRow}>
+                        <Text style={styles.paymentDetailKey}>IFSC code:</Text>
+                        <Text style={styles.paymentDetailVal}>{data.ifscCode}</Text>
+                      </View>
+                    ) : null}
+                    {data.swiftCode ? (
+                      <View style={styles.paymentDetailRow}>
+                        <Text style={styles.paymentDetailKey}>SWIFT code:</Text>
+                        <Text style={styles.paymentDetailVal}>{data.swiftCode}</Text>
+                      </View>
+                    ) : null}
+                  </>
+                );
+              })()}
+            </>
+          ) : data.paymentMethod === 'CRYPTO' || data.paymentMethod === 'Crypto' ? (
+            <>
+              {data.bankAccountName ? (
+                <View style={styles.paymentDetailRow}>
+                  <Text style={styles.paymentDetailKey}>Network:</Text>
+                  <Text style={styles.paymentDetailVal}>{data.bankAccountName}</Text>
+                </View>
+              ) : null}
+              {data.accountNumber ? (
+                <View style={styles.paymentDetailRow}>
+                  <Text style={styles.paymentDetailKey}>Wallet Address:</Text>
+                  <Text style={styles.paymentDetailVal}>{data.accountNumber}</Text>
+                </View>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <View style={styles.paymentDetailRow}>
+                <Text style={styles.paymentDetailVal}>{data.paymentMethod || '[method]'}</Text>
+              </View>
+              {data.instructions ? (
+                <View style={styles.paymentDetailRow}>
+                  <Text style={styles.paymentDetailVal}>{data.instructions}</Text>
+                </View>
+              ) : null}
+            </>
+          )}
         </View>
         
       </Page>
