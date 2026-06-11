@@ -6,12 +6,7 @@ export function useExpenseUpload() {
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Create a local blob URL so the edit page can show the original file
-    // without needing server-side storage (not available on Vercel).
+  const processFile = async (file: File) => {
     const blobUrl = URL.createObjectURL(file);
 
     try {
@@ -65,12 +60,19 @@ export function useExpenseUpload() {
       toast.error("Failed to process document");
     } finally {
       setIsProcessing(false);
-      e.target.value = ''; // Reset input
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    await processFile(file);
   };
 
   return {
     isProcessing,
+    processFile,
     handleFileUpload
   };
 }
