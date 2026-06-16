@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
 
     // ── EXPENSE BREAKDOWN ─────────────────────────────────────
     const allExpenses = await prisma.expense.findMany({
-      where: { workspaceId, deletedAt: null },
+      where: { workspaceId, deletedAt: null, date: { gte: earliestDate, lte: latestDate } },
       select: { category: true, amount: true },
     });
 

@@ -4,16 +4,23 @@ import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
 import { getCurrentWorkspaceId } from '@/lib/workspace';
 
-export async function GET() {
+export async function GET(request: Request) {
   const workspaceId = await getCurrentWorkspaceId();
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
- if (!workspaceId) return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+  if (!workspaceId) return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+
+  const { searchParams } = new URL(request.url)
+  const startDate = searchParams.get('startDate')
+  const endDate = searchParams.get('endDate')
+  const dateFilter = startDate && endDate
+    ? { gte: new Date(startDate), lte: new Date(`${endDate}T23:59:59.999Z`) }
+    : undefined
 
   // 1. Fetch Invoices
   const invoices = await prisma.invoice.findMany({
-    where: { workspaceId, deletedAt: null },
+    where: { workspaceId, deletedAt: null, ...(dateFilter ? { createdAt: dateFilter } : {}) },
     select: {
       id: true, invoiceNumber: true, total: true, currency: true, status: true,
       dueDate: true, paidAt: true, client: { select: { name: true } },
@@ -23,7 +30,7 @@ export async function GET() {
 
   // 2. Fetch Expenses
   const expenses = await prisma.expense.findMany({
-    where: { workspaceId, deletedAt: null },
+    where: { workspaceId, deletedAt: null, ...(dateFilter ? { date: dateFilter } : {}) },
     select: {
       id: true, amount: true, currency: true, category: true,
       date: true, status: true, vendor: true, paymentMethod: true
@@ -32,7 +39,7 @@ export async function GET() {
 
   // 3. Fetch Settlements (helps calculate FX Loss and Margins)
   const settlements = await prisma.settlementRecord.findMany({
-    where: { workspaceId },
+    where: { workspaceId, ...(dateFilter ? { settledAt: dateFilter } : {}) },
     select: {
       id: true, invoicedUSD: true, receivedUSD: true, realizedINR: true,
       exchangeRate: true, platformFee: true, transferFee: true, status: true,
