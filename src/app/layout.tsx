@@ -24,7 +24,7 @@ export default function RootLayout({
   // Detect login page server-side to hide sidebar
   const headersList = headers();
   const pathname = headersList.get("x-pathname") ?? "";
-  const isLoginPage = pathname === "/login" || pathname.startsWith("/login");
+  const isLoginPage = pathname === "/login" || pathname.startsWith("/login") || pathname.startsWith("/invite");
 
   return (
     <html lang="en" className="dark">

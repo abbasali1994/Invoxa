@@ -66,7 +66,13 @@ export async function POST(req: NextRequest) {
   })
 
   // Send email
-  const inviteLink = `${process.env.AUTH_URL}/login?invite=${token}`
+  const inviteLink = `${process.env.AUTH_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'}/invite/${token}`
+  console.log('DEBUG SMTP SETTINGS:', {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS ? `${process.env.SMTP_PASS.substring(0, 5)}...` : 'undefined',
+  });
   await sendWorkspaceInvite(
     email,
     invokerMembership.workspace.name,

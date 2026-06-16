@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import { Plus, Mail, RefreshCw, XCircle, Loader2 } from 'lucide-react'
 
@@ -17,6 +18,7 @@ type Invitation = {
 }
 
 export function TeamSettingsTab() {
+  const { data: session } = useSession()
   const [invitations, setInvitations] = useState<Invitation[]>([])
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState('')
@@ -47,10 +49,7 @@ export function TeamSettingsTab() {
     
     setIsInviting(true)
     try {
-      const workspaceId = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('active_workspace_id='))
-        ?.split('=')[1]
+      const workspaceId = session?.user?.currentWorkspaceId || (typeof window !== 'undefined' ? localStorage.getItem('activeWorkspaceId') : null)
 
       if (!workspaceId) {
         toast.error('Workspace ID not found')

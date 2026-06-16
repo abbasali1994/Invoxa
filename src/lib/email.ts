@@ -1,18 +1,35 @@
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.mailtrap.io',
-  port: parseInt(process.env.SMTP_PORT || '2525'),
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const cleanEnv = (val?: string) => val ? val.replace(/^["']|["']$/g, '') : '';
+
+function getTransporter() {
+  const host = cleanEnv(process.env.SMTP_HOST) || 'smtp.mailtrap.io';
+  const port = parseInt(cleanEnv(process.env.SMTP_PORT) || '2525');
+  const user = cleanEnv(process.env.SMTP_USER);
+
+  let pass = cleanEnv(process.env.SMTP_PASS);
+  if (host.includes('resend') && process.env.RESEND_API_KEY) {
+    pass = cleanEnv(process.env.RESEND_API_KEY);
+  }
+
+  const isSecure = port === 465;
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: isSecure,
+    auth: {
+      user,
+      pass,
+    },
+  });
+}
 
 export async function sendInvoiceReminder(to: string, invoiceName: string, dueDate: string) {
   try {
-    await transporter.sendMail({
-      from: '"Invoxa Billing" <billing@invoxa.com>',
+    const user = cleanEnv(process.env.SMTP_USER);
+    await getTransporter().sendMail({
+      from: cleanEnv(process.env.SMTP_FROM) || (user ? `"Invoxa Billing" <${user}>` : '"Invoxa Billing" <billing@invoxa.com>'),
       to,
       subject: `Payment Reminder: Invoice ${invoiceName} Due Soon`,
       text: `This is a reminder that your invoice ${invoiceName} is due on ${dueDate}. Please arrange for payment to avoid late fees.`,
@@ -41,8 +58,28 @@ export async function sendWorkspaceInvite(
   inviteLink: string
 ) {
   try {
-    await transporter.sendMail({
-      from: '"Invoxa Accounts" <accounts@invoxa.com>',
+    const host = cleanEnv(process.env.SMTP_HOST) || 'smtp.mailtrap.io';
+    const port = parseInt(cleanEnv(process.env.SMTP_PORT) || '2525');
+    const user = cleanEnv(process.env.SMTP_USER);
+    let pass = cleanEnv(process.env.SMTP_PASS);
+    if (host.includes('resend') && process.env.RESEND_API_KEY) {
+      pass = cleanEnv(process.env.RESEND_API_KEY);
+    }
+
+    console.log('\n==================================================');
+    console.log(`WORKSPACE INVITATION TO: ${to}`);
+    console.log(`INVITATION LINK: ${inviteLink}`);
+    console.log('SMTP CONFIG IN USE:', {
+      host,
+      port,
+      user,
+      passLength: pass?.length,
+      passStart: pass?.substring(0, 5),
+    });
+    console.log('==================================================\n');
+
+    await getTransporter().sendMail({
+      from: cleanEnv(process.env.SMTP_FROM) || (user ? `"Invoxa Accounts" <${user}>` : '"Invoxa Accounts" <accounts@invoxa.com>'),
       to,
       subject: `You have been invited to join ${workspaceName} on Invoxa`,
       text: `${inviterName} has invited you to join the workspace "${workspaceName}" as an ${role}. Please log in or sign up to accept the invitation: ${inviteLink}`,

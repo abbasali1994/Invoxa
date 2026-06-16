@@ -50,7 +50,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         }
       })
 
-      const inviteLink = `${process.env.AUTH_URL}/login?invite=${token}`
+      const inviteLink = `${process.env.AUTH_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'}/invite/${token}`
       await sendWorkspaceInvite(
         updated.email,
         invokerMembership.workspace.name,

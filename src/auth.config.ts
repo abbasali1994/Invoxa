@@ -16,6 +16,7 @@ export const authConfig: NextAuthConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isLoginPage = nextUrl.pathname === '/login'
+      const isInvitePage = nextUrl.pathname.startsWith('/invite')
       const isSignupSuccess = isLoginPage && nextUrl.searchParams.get('signup') === 'success'
       const isApiAuth = nextUrl.pathname.startsWith('/api/auth')
       const isPublic = nextUrl.pathname.startsWith('/_next') || nextUrl.pathname === '/favicon.ico'
@@ -25,6 +26,7 @@ export const authConfig: NextAuthConfig = {
         if (isLoggedIn && !isSignupSuccess) return Response.redirect(new URL('/', nextUrl))
         return true
       }
+      if (isInvitePage) return true
       if (!isLoggedIn) return false
       return true
     },
