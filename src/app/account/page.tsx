@@ -19,9 +19,8 @@ export default function AccountPage() {
       </div>
 
       <AccountProfile session={session} />
-      <WorkspaceList {...accountProps} />
-      <WorkspaceMembersPanel {...accountProps} session={session} />
-      <CreateWorkspaceModal {...accountProps} />
+      <WorkspaceList {...accountProps} readOnly />
+      <WorkspaceMembersPanel {...accountProps} session={session} readOnly />
     </div>
   )
 }

@@ -13,8 +13,9 @@ export default auth((req) => {
   }
 
   const isLoginPage = pathname === '/login'
+  const isInvitePage = pathname.startsWith('/invite')
 
-  if (!isLoggedIn && !isLoginPage) {
+  if (!isLoggedIn && !isLoginPage && !isInvitePage) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 

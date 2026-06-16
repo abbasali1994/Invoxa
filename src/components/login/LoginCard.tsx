@@ -1,7 +1,11 @@
 'use client'
 import { signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 
 export function LoginCard() {
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
+
   return (
     <div style={{
       width: '100%',
@@ -25,7 +29,7 @@ export function LoginCard() {
         Sign in to your workspace
       </p>
       <button
-        onClick={() => signIn('google', { callbackUrl: '/' })}
+        onClick={() => signIn('google', { callbackUrl })}
         style={{
           width: '100%',
           display: 'flex',

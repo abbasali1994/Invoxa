@@ -72,6 +72,61 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           activeWorkspaceId = cookies().get('active_workspace_id')?.value ?? null
         } catch {}
 
+        const email = session.user?.email || token?.email
+        if (email) {
+          try {
+            const pendingInvites = await prisma.workspaceInvitation.findMany({
+              where: { email, status: 'PENDING' }
+            })
+
+            for (const invite of pendingInvites) {
+              if (invite.expiresAt < new Date()) {
+                await prisma.workspaceInvitation.update({
+                  where: { id: invite.id },
+                  data: { status: 'EXPIRED' }
+                })
+                continue
+              }
+
+              const existing = await prisma.workspaceMember.findUnique({
+                where: { workspaceId_userId: { workspaceId: invite.workspaceId, userId } }
+              })
+
+              if (!existing) {
+                await prisma.workspaceMember.create({
+                  data: {
+                    workspaceId: invite.workspaceId,
+                    userId,
+                    role: invite.role,
+                  }
+                })
+              }
+
+              await prisma.workspaceInvitation.update({
+                where: { id: invite.id },
+                data: { status: 'ACCEPTED', acceptedAt: new Date() }
+              })
+
+              await logAction('WORKSPACE', invite.workspaceId, 'Invitation Accepted', { email, role: invite.role }, userId)
+              
+              activeWorkspaceId = invite.workspaceId
+              try {
+                cookies().set('active_workspace_id', invite.workspaceId, {
+                  httpOnly: true,
+                  sameSite: 'lax',
+                  secure: process.env.NODE_ENV === 'production',
+                  path: '/',
+                  maxAge: 60 * 60 * 24 * 365,
+                })
+              } catch (cookieErr) {
+                console.error('Failed to set cookie in session callback:', cookieErr)
+              }
+            }
+          } catch (inviteErr) {
+            console.error('Error processing invitations in session callback:', inviteErr)
+          }
+        }
+
         const memberships = await prisma.workspaceMember.findMany({
           where: { userId },
           include: { workspace: true },

@@ -1,17 +1,19 @@
 import React from "react";
 import { Plus, Building2, Crown, Users } from "lucide-react";
 
-export function WorkspaceList({ workspaces, loading, setShowCreateModal, openManage }: any) {
+export function WorkspaceList({ workspaces, loading, setShowCreateModal, openManage, readOnly = false }: any) {
   return (
     <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-base font-semibold text-neutral-200">Your Workspaces</h3>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 rounded-md text-sm hover:bg-indigo-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" /> New Workspace
-        </button>
+        {!readOnly && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 rounded-md text-sm hover:bg-indigo-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> New Workspace
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -55,7 +57,7 @@ export function WorkspaceList({ workspaces, loading, setShowCreateModal, openMan
                     onClick={() => openManage(ws)}
                     className="text-xs px-3 py-1 border border-neutral-700 rounded hover:bg-neutral-800 transition-colors"
                   >
-                    {ws.role === 'ADMIN' ? 'Manage' : 'View'}
+                    {readOnly ? 'View Members' : (ws.role === 'ADMIN' ? 'Manage' : 'View')}
                   </button>
                 </td>
               </tr>
