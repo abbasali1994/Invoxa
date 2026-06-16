@@ -1,6 +1,6 @@
 import React from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { LineChart, Line, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, ResponsiveContainer, YAxis } from 'recharts'
 
 interface Trend { trend: string; direction: string; timeframe: string; description: string; confidence: string; dataPoints?: number[] }
 interface Props { trends: Trend[] }
@@ -30,6 +30,7 @@ export function FutureTrendsCard({ trends }: Props) {
                 <div style={{ height: '60px', width: '100%', marginBottom: '0.75rem', marginTop: '0.25rem' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
+                      <YAxis domain={['dataMin', 'dataMax']} hide={true} />
                       <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={{ r: 2, fill: '#0d0d0d', strokeWidth: 2 }} activeDot={{ r: 4 }} />
                     </LineChart>
                   </ResponsiveContainer>

@@ -83,6 +83,7 @@ CRITICAL INSTRUCTION: DO NOT calculate your own totals, margins, or FX losses. Y
 - If \`grossMarginPercentage\` is provided, use exactly that number.
 - For business health score, use a logical formula based on the exact margins, cashflow gaps, and profit provided. If the business is highly profitable, the score should be > 80 (Excellent).
 - \`totalFXLossINR\` is exact. Use it.
+- For Future Trends, you MUST base your predictions on estimated future USD-to-INR exchange rate fluctuations and strictly explain how these projected conversion rates will positively or negatively affect expenses and settlement gaps (FX losses).
 
 Analyze margins, FX losses (if settlements have exchange rates/fees), revenue concentration by client, expense bloat, cashflow gaps (overdue invoices), and overall business health.
 
@@ -142,7 +143,7 @@ Schema:
     { "area": "<name>", "impact": "<short impact>", "description": "<desc>" }
   ],
   "futureTrends": [
-    { "trend": "<trend name>", "direction": "<positive | negative | neutral>", "timeframe": "<e.g. Q3 2026>", "description": "<desc with numeric backing>", "confidence": "<high | medium | low>", "dataPoints": [10, 25, 45, 60, 80] }
+    { "trend": "<trend name (e.g. USD/INR Exchange Rate Projection)>", "direction": "<positive | negative | neutral>", "timeframe": "<e.g. Q3 2026>", "description": "<Explain how projected USD/INR conversion rate changes will affect expenses and settlement gaps/FX losses>", "confidence": "<high | medium | low>", "dataPoints": [82, 83.5, 84, 85, 84.5] }
   ],
   "recommendations": [
     { "priority": "<critical | high | medium>", "action": "<action>", "expectedImpact": "<impact>", "timeframe": "<e.g. Immediate, 30 days>" }
