@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, Suspense } from 'react'
 import { LoginBranding } from '@/components/login/LoginBranding'
 import { LoginCard } from '@/components/login/LoginCard'
 import { CashAnimation } from '@/components/login/CashAnimation'
@@ -327,7 +327,9 @@ export default function LoginPage() {
         zIndex: 9,
         opacity: 0,
       }}>
-        <LoginCard />
+        <Suspense>
+          <LoginCard />
+        </Suspense>
       </div>
 
     </div>
