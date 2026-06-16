@@ -17,7 +17,7 @@ export function InvoiceDetailHeader({ invoice, toggleStar, handleDelete, isDelet
     const fullUrl = window.location.href;
     if (option === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + fullUrl)}`, '_blank');
     else if (option === 'telegram') window.open(`https://t.me/share/url?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(`Invoice ${invoice.invoiceNumber} | ${invoice.client.name} | ${invoice.currency} ${invoice.total}`)}`, '_blank');
-    else if (option === 'gmail') window.open(`mailto:${invoice.client.email}?subject=${encodeURIComponent(`Invoice ${invoice.invoiceNumber} from Invoxa`)}&body=${encodeURIComponent(`Hi ${invoice.client.name},\n\nPlease find your invoice details below:\n\nInvoice #: ${invoice.invoiceNumber}\nAmount: ${invoice.currency} ${invoice.total}\nDue Date: ${invoice.dueDate ? format(new Date(invoice.dueDate), 'MMM d, yyyy') : 'N/A'}\n\nView invoice: ${fullUrl}\n\nThank you.`)}`, '_blank');
+    else if (option === 'gmail') window.open(`mailto:${invoice.client.email}?subject=${encodeURIComponent(`Invoice ${invoice.invoiceNumber} from Settlr`)}&body=${encodeURIComponent(`Hi ${invoice.client.name},\n\nPlease find your invoice details below:\n\nInvoice #: ${invoice.invoiceNumber}\nAmount: ${invoice.currency} ${invoice.total}\nDue Date: ${invoice.dueDate ? format(new Date(invoice.dueDate), 'MMM d, yyyy') : 'N/A'}\n\nView invoice: ${fullUrl}\n\nThank you.`)}`, '_blank');
     else if (option === 'copy') { navigator.clipboard.writeText(fullUrl); toast.success('Link copied to clipboard'); }
     else if (option === 'pdf') window.open(`/api/invoices/${invoice.id}/pdf`, '_blank');
   };

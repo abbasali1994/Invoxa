@@ -39,7 +39,7 @@ export async function sendInvoiceReminder(to: string, invoiceName: string, dueDa
           <p>This is a reminder that your invoice <strong>${invoiceName}</strong> is due on <strong>${dueDate}</strong>.</p>
           <p>Please arrange for payment to avoid late fees.</p>
           <br/>
-          <p>Thank you,<br/>Invoxa Billing Team</p>
+          <p>Thank you,<br/>Settlr Billing Team</p>
         </div>
       `,
     });
@@ -81,7 +81,7 @@ export async function sendWorkspaceInvite(
     await getTransporter().sendMail({
       from: cleanEnv(process.env.SMTP_FROM) || (user ? `"Invoxa Accounts" <${user}>` : '"Invoxa Accounts" <accounts@invoxa.com>'),
       to,
-      subject: `You have been invited to join ${workspaceName} on Invoxa`,
+      subject: `You have been invited to join ${workspaceName} on Settlr`,
       text: `${inviterName} has invited you to join the workspace "${workspaceName}" as an ${role}. Please log in or sign up to accept the invitation: ${inviteLink}`,
       html: `
         <div style="font-family: 'Inter', sans-serif; max-width: 500px; margin: 0 auto; padding: 32px; border: 1px solid #e5e5e5; border-radius: 12px; background-color: #fafafa;">
@@ -93,7 +93,7 @@ export async function sendWorkspaceInvite(
             Join Workspace
           </a>
           <p style="color: #737373; font-size: 14px; line-height: 1.5;">
-            This invitation will expire in ${expiryDays} days. If you don't have an Invoxa account, one will be created when you log in.
+            This invitation will expire in ${expiryDays} days. If you don't have an Settlr account, one will be created when you log in.
           </p>
         </div>
       `,

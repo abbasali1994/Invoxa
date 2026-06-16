@@ -10,7 +10,7 @@ export function LoginBranding() {
         margin: '0 0 0.2rem',
         letterSpacing: '-0.01em',
       }}>
-        Invoxa
+        Settlr
       </h1>
       <div style={{
         width: '42px',

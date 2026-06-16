@@ -33,7 +33,7 @@ export function useSettings() {
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem('invoxa_settings');
+    const stored = localStorage.getItem('settlr_settings');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -45,7 +45,7 @@ export function useSettings() {
       } catch {}
     }
 
-    const storedMethods = localStorage.getItem('invoxa_payment_methods');
+    const storedMethods = localStorage.getItem('settlr_payment_methods');
     if (storedMethods) {
       try { 
         const parsed = JSON.parse(storedMethods);
@@ -74,7 +74,7 @@ export function useSettings() {
   }, []);
 
   const saveGeneral = () => {
-    localStorage.setItem('invoxa_settings', JSON.stringify({ darkMode, currency, secondaryCurrency, dateFormat, timezone }));
+    localStorage.setItem('settlr_settings', JSON.stringify({ darkMode, currency, secondaryCurrency, dateFormat, timezone }));
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -129,7 +129,7 @@ export function useSettings() {
       updated = [...paymentMethods, { ...normalizedMethod, id: `custom-${Date.now()}`, builtin: false }];
     }
     setPaymentMethods(updated);
-    localStorage.setItem('invoxa_payment_methods', JSON.stringify(updated));
+    localStorage.setItem('settlr_payment_methods', JSON.stringify(updated));
     setNewMethod({
       name: '', type: PaymentMethod.BANK_TRANSFER as string, instructions: '',
       bankAccountName: '', accountNumber: '', bankName: '', ifscCode: '', swiftCode: '',
@@ -143,7 +143,7 @@ export function useSettings() {
   const removePaymentMethod = (id: string) => {
     const updated = paymentMethods.filter((m) => m.id !== id);
     setPaymentMethods(updated);
-    localStorage.setItem('invoxa_payment_methods', JSON.stringify(updated));
+    localStorage.setItem('settlr_payment_methods', JSON.stringify(updated));
     toast.success('Removed');
   };
 
