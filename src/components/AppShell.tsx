@@ -12,6 +12,7 @@ import { ProfileDropdown } from "@/components/ProfileDropdown";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Command },
+  { href: "/analytics", label: "Analytics", icon: PieChart },
   { href: "/invoices", label: "Invoices", icon: FileText, quickAdd: "/invoices/new" },
   { href: "/clients", label: "Clients", icon: Users },
   { href: "/expenses", label: "Expenses", icon: Receipt, quickAdd: "/expenses/new" },
