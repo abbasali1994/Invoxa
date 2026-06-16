@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 export async function GET() {
+  const workspaceId = await getCurrentWorkspaceId();
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const workspaceId = cookies().get('active_workspace_id')?.value
-  if (!workspaceId) return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+ if (!workspaceId) return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
 
   // 1. Fetch Invoices
   const invoices = await prisma.invoice.findMany({
