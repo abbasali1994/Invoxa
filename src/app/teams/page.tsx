@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useAccount } from '@/hooks/useAccount'
@@ -8,7 +9,7 @@ import { WorkspaceMembersPanel } from '@/components/account/WorkspaceMembersPane
 import { CreateWorkspaceModal } from '@/components/account/CreateWorkspaceModal'
 import { TeamSettingsTab } from '@/components/settings/TeamSettingsTab'
 
-export default function TeamsPage() {
+function TeamsContent() {
   const { data: session } = useSession()
   const accountProps = useAccount()
   const searchParams = useSearchParams()
@@ -65,5 +66,13 @@ export default function TeamsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function TeamsPage() {
+  return (
+    <Suspense>
+      <TeamsContent />
+    </Suspense>
   )
 }
