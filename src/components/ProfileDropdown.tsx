@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, User, Settings, LogOut } from 'lucide-react'
+import { ChevronDown, User, Settings, LogOut, Users, Building2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useProfileDropdown } from '@/hooks/useProfileDropdown'
 import { ProfileHeader } from '@/components/profile/ProfileHeader'
@@ -46,6 +46,11 @@ export function ProfileDropdown() {
         </DropdownMenuItem>
 
         <WorkspaceSwitcher {...profileState} />
+
+        <div style={{ height: '1px', background: '#1f2937', margin: '4px 0' }} />
+        <DropdownMenuItem onClick={() => router.push('/teams')} className="hover:bg-neutral-800 cursor-pointer text-sm text-neutral-300">
+          <Users className="w-4 h-4 mr-2 text-neutral-400" /> Team Settings
+        </DropdownMenuItem>
 
         <div style={{ height: '1px', background: '#1f2937', margin: '4px 0' }} />
         <DropdownMenuItem onClick={handleSignOut} className="hover:bg-rose-500/10 cursor-pointer text-sm text-rose-400">

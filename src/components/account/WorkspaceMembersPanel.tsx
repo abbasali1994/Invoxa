@@ -3,7 +3,8 @@ import { X, UserPlus, Trash2 } from "lucide-react";
 
 export function WorkspaceMembersPanel({ 
   selectedWorkspace, setSelectedWorkspace, members, inviteEmail, setInviteEmail, 
-  inviteRole, setInviteRole, handleInvite, inviting, handleRemoveMember, session 
+  inviteRole, setInviteRole, handleInvite, inviting, handleRemoveMember, session,
+  readOnly = false
 }: any) {
   if (!selectedWorkspace) return null;
 
@@ -18,7 +19,7 @@ export function WorkspaceMembersPanel({
         </button>
       </div>
 
-      {selectedWorkspace.role === 'ADMIN' && (
+      {!readOnly && selectedWorkspace.role === 'ADMIN' && (
         <div className="flex gap-3 mb-5">
           <input
             type="email"
@@ -65,7 +66,7 @@ export function WorkspaceMembersPanel({
             <div className="flex items-center gap-3">
               <span className={`px-2 py-0.5 rounded text-xs font-medium ${m.role === 'ADMIN' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-400'
                 }`}>{m.role}</span>
-              {selectedWorkspace.role === 'ADMIN' && m.userId !== session?.user?.id && (
+              {!readOnly && selectedWorkspace.role === 'ADMIN' && m.userId !== session?.user?.id && (
                 <button onClick={() => handleRemoveMember(m.userId)} className="text-neutral-600 hover:text-rose-400 transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>

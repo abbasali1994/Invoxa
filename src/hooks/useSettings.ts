@@ -3,7 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { PaymentMethod, PAYMENT_METHOD_LABELS } from "@/lib/paymentMethods";
 
-export const TABS = ['General', 'Payments', 'Team'] as const;
+export const TABS = ['General', 'Payments'] as const;
 export type Tab = typeof TABS[number];
 
 const DEFAULT_PAYMENT_METHODS = [
