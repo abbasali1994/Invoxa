@@ -1,0 +1,190 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Sparkles, Loader2, Database, AlertCircle } from 'lucide-react'
+import { HealthScoreCard } from '@/components/analytics/HealthScoreCard'
+import { ExecutiveSummaryCard } from '@/components/analytics/ExecutiveSummaryCard'
+import { ProfitAnalysisCard } from '@/components/analytics/ProfitAnalysisCard'
+import { RevenueInsightsCard } from '@/components/analytics/RevenueInsightsCard'
+import { ExpenseAnalysisCard } from '@/components/analytics/ExpenseAnalysisCard'
+import { FXLossCard } from '@/components/analytics/FXLossCard'
+import { CashflowCard } from '@/components/analytics/CashflowCard'
+import { KeyMetricsCard } from '@/components/analytics/KeyMetricsCard'
+import { LossAreasCard } from '@/components/analytics/LossAreasCard'
+import { WinningAreasCard } from '@/components/analytics/WinningAreasCard'
+import { FutureTrendsCard } from '@/components/analytics/FutureTrendsCard'
+import { RecommendationsCard } from '@/components/analytics/RecommendationsCard'
+
+export default function AnalyticsPage() {
+  const [loadingInitial, setLoadingInitial] = useState(true)
+  const [dataSummary, setDataSummary] = useState<any>(null)
+  const [rawData, setRawData] = useState<any>(null)
+  
+  const [analyzing, setAnalyzing] = useState(false)
+  const [report, setReport] = useState<any>(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetch('/api/analytics/data')
+      .then(res => res.json())
+      .then(data => {
+        if (data.summary) {
+          setDataSummary(data.summary)
+          setRawData(data.data)
+        }
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoadingInitial(false))
+  }, [])
+
+  const generateAnalysis = async () => {
+    setAnalyzing(true)
+    setError('')
+    try {
+      const res = await fetch('/api/analytics/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payload: rawData })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to generate analysis')
+      setReport(data)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  if (loadingInitial) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh]">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-4" />
+        <p className="text-neutral-400">Aggregating ledger data...</p>
+      </div>
+    )
+  }
+
+  if (!report && !analyzing) {
+    return (
+      <div className="max-w-4xl mx-auto py-12">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 md:p-12 text-center">
+          <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Sparkles className="w-8 h-8 text-indigo-400" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-4">AI Financial Intelligence</h1>
+          <p className="text-neutral-400 text-lg mb-8 max-w-2xl mx-auto">
+            Generate a deeply insightful, brutally honest, and actionable financial report powered by Groq & Llama 3.
+          </p>
+
+          {dataSummary && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 text-left">
+              <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-4">
+                <p className="text-neutral-500 text-xs uppercase tracking-wider mb-1">Invoices</p>
+                <p className="text-xl font-bold text-white">{dataSummary.totalInvoices}</p>
+                <p className="text-indigo-400 text-sm mt-1">${dataSummary.invoiceVolume?.toLocaleString()}</p>
+              </div>
+              <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-4">
+                <p className="text-neutral-500 text-xs uppercase tracking-wider mb-1">Expenses</p>
+                <p className="text-xl font-bold text-white">{dataSummary.totalExpenses}</p>
+                <p className="text-rose-400 text-sm mt-1">₹{dataSummary.expenseVolume?.toLocaleString()}</p>
+              </div>
+              <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-4">
+                <p className="text-neutral-500 text-xs uppercase tracking-wider mb-1">Settlements</p>
+                <p className="text-xl font-bold text-white">{dataSummary.totalSettlements}</p>
+              </div>
+              <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-4">
+                <p className="text-neutral-500 text-xs uppercase tracking-wider mb-1">Accounts</p>
+                <p className="text-xl font-bold text-white">{dataSummary.totalAccounts}</p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl p-4 mb-8 flex items-center justify-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            onClick={generateAnalysis}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl text-lg font-medium transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto"
+          >
+            <Database className="w-5 h-5" />
+            Generate AI Analysis
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (analyzing) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh]">
+        <div className="relative">
+          <div className="w-20 h-20 border-4 border-indigo-500/30 rounded-full animate-ping absolute inset-0"></div>
+          <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center relative z-10 backdrop-blur-sm border border-indigo-500/30">
+            <Sparkles className="w-10 h-10 text-indigo-400 animate-pulse" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-white mt-8 mb-2">Analyzing Ledger Data</h2>
+        <p className="text-neutral-400 max-w-md text-center">
+          Groq is crunching your invoices, expenses, settlements, and FX rates to build a comprehensive intelligence report. This usually takes 5-10 seconds.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-indigo-400" />
+            AI Financial Intelligence
+          </h1>
+          <p className="text-neutral-400 mt-1">Generated by Llama 3 on Groq</p>
+        </div>
+        <button
+          onClick={generateAnalysis}
+          className="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          Regenerate Report
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <HealthScoreCard {...report.healthScore} />
+        <div className="md:col-span-2">
+          <ExecutiveSummaryCard {...report.executiveSummary} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <KeyMetricsCard metrics={{ ...report.keyMetrics, ...report.executiveSummary?.metrics }} />
+        <RevenueInsightsCard data={report.revenueInsights} />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <ProfitAnalysisCard data={report.profitAnalysis} />
+        <ExpenseAnalysisCard data={report.expenseAnalysis} />
+        <FXLossCard data={report.fxLoss} />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CashflowCard data={report.cashflow} />
+        <LossAreasCard areas={report.lossAreas} />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <RecommendationsCard recommendations={report.recommendations} />
+        <WinningAreasCard areas={report.winningAreas} />
+      </div>
+      
+      <div className="w-full">
+        <FutureTrendsCard trends={report.futureTrends} />
+      </div>
+    </div>
+  )
+}
