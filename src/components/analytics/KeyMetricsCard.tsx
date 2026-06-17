@@ -3,8 +3,7 @@ import React from 'react'
 interface Props { metrics: any }
 export function KeyMetricsCard({ metrics }: Props) {
   const items = [
-    { label: 'Gross Margin', value: `${metrics?.grossMargin?.toFixed(1)}%`, color: '#34d399' },
-    { label: 'Net Margin', value: `${metrics?.netMargin?.toFixed(1)}%`, color: '#34d399' },
+
     { label: 'Revenue Growth', value: `${metrics?.revenueGrowthRate?.toFixed(1)}%`, color: metrics?.revenueGrowthRate >= 0 ? '#34d399' : '#f87171' },
     { label: 'Expense Growth', value: `${metrics?.expenseGrowthRate?.toFixed(1)}%`, color: metrics?.expenseGrowthRate <= 0 ? '#34d399' : '#f87171' },
     { label: 'Settlement Efficiency', value: `${metrics?.settlementEfficiency?.toFixed(1)}%`, color: '#a78bfa' },

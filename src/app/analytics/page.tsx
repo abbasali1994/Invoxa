@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Sparkles, Loader2, Database, AlertCircle } from 'lucide-react'
-import { HealthScoreCard } from '@/components/analytics/HealthScoreCard'
+
 import { ExecutiveSummaryCard } from '@/components/analytics/ExecutiveSummaryCard'
 import { ProfitAnalysisCard } from '@/components/analytics/ProfitAnalysisCard'
 import { RevenueInsightsCard } from '@/components/analytics/RevenueInsightsCard'
@@ -10,9 +10,7 @@ import { ExpenseAnalysisCard } from '@/components/analytics/ExpenseAnalysisCard'
 import { FXLossCard } from '@/components/analytics/FXLossCard'
 import { CashflowCard } from '@/components/analytics/CashflowCard'
 import { KeyMetricsCard } from '@/components/analytics/KeyMetricsCard'
-import { LossAreasCard } from '@/components/analytics/LossAreasCard'
-import { WinningAreasCard } from '@/components/analytics/WinningAreasCard'
-import { FutureTrendsCard } from '@/components/analytics/FutureTrendsCard'
+import { RevenueAnalysisChart } from '@/components/analytics/RevenueAnalysisChart'
 import { RecommendationsCard } from '@/components/analytics/RecommendationsCard'
 import { DateRangePicker, defaultDateRange, type DateRange } from '@/components/ui/DateRangePicker'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -50,7 +48,7 @@ export default function AnalyticsPage() {
       const res = await fetch('/api/analytics/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payload: rawData })
+        body: JSON.stringify({ payload: rawData, dateRange })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to generate analysis')
@@ -107,16 +105,17 @@ export default function AnalyticsPage() {
           }
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <HealthScoreCard {...report.healthScore} />
-          <div className="md:col-span-2">
-            <ExecutiveSummaryCard {...report.executiveSummary} />
-          </div>
+        <div className="w-full">
+          <ExecutiveSummaryCard {...report.executiveSummary} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <KeyMetricsCard metrics={{ ...report.keyMetrics, ...report.executiveSummary?.metrics }} />
           <RevenueInsightsCard data={report.revenueInsights} />
+        </div>
+
+        <div className="w-full">
+          <RevenueAnalysisChart rawData={rawData} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -127,16 +126,7 @@ export default function AnalyticsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <CashflowCard data={report.cashflow} />
-          <LossAreasCard areas={report.lossAreas} />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <RecommendationsCard recommendations={report.recommendations} />
-          <WinningAreasCard areas={report.winningAreas} />
-        </div>
-
-        <div className="w-full">
-          <FutureTrendsCard trends={report.futureTrends} />
         </div>
       </div>
     )
