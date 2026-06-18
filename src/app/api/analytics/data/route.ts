@@ -53,6 +53,20 @@ export async function GET(request: Request) {
     select: { id: true, name: true, type: true, balance: true, currency: true }
   })
 
+  // 5. Fetch actual historical FX rates
+  let fxRates = null;
+  try {
+    const sDate = startDate ? startDate.split('T')[0] : '2025-01-01';
+    const eDate = endDate ? endDate.split('T')[0] : new Date().toISOString().split('T')[0];
+    const res = await fetch(`https://api.frankfurter.dev/v1/${sDate}..${eDate}?base=USD&symbols=INR`, { cache: 'no-store' });
+    if (res.ok) {
+      const fxData = await res.json();
+      fxRates = fxData.rates;
+    }
+  } catch (error) {
+    console.error('Failed to fetch FX rates', error);
+  }
+
   // Basic pre-computation to pass to Gemini
   const summary = {
     totalInvoices: invoices.length,
@@ -65,6 +79,6 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     summary,
-    data: { invoices, expenses, settlements, accounts }
+    data: { invoices, expenses, settlements, accounts, fxRates }
   })
 }
