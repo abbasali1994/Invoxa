@@ -11,6 +11,7 @@ import { FXLossCard } from '@/components/analytics/FXLossCard'
 import { CashflowCard } from '@/components/analytics/CashflowCard'
 import { KeyMetricsCard } from '@/components/analytics/KeyMetricsCard'
 import { RevenueAnalysisChart } from '@/components/analytics/RevenueAnalysisChart'
+import { DollarRateAnalysisCard } from '@/components/analytics/DollarRateAnalysisCard'
 import { RecommendationsCard } from '@/components/analytics/RecommendationsCard'
 import { DateRangePicker, defaultDateRange, type DateRange } from '@/components/ui/DateRangePicker'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -20,6 +21,7 @@ export default function AnalyticsPage() {
   const [loadingInitial, setLoadingInitial] = useState(true)
   const [dataSummary, setDataSummary] = useState<any>(null)
   const [rawData, setRawData] = useState<any>(null)
+  const [dollarAnalysis, setDollarAnalysis] = useState<string>('')
 
   const [analyzing, setAnalyzing] = useState(false)
   const [report, setReport] = useState<any>(null)
@@ -115,8 +117,14 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="w-full">
-          <RevenueAnalysisChart rawData={rawData} />
+          <RevenueAnalysisChart rawData={rawData} onAnalysisReady={setDollarAnalysis} />
         </div>
+
+        {dollarAnalysis && (
+          <div className="w-full">
+            <DollarRateAnalysisCard analysis={dollarAnalysis} />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <ProfitAnalysisCard data={report.profitAnalysis} />
