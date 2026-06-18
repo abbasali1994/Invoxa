@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import {
   ComposedChart,
   Area,
@@ -11,31 +11,16 @@ import {
   ReferenceLine,
   Legend
 } from 'recharts'
-import { format, parseISO, addMonths, startOfMonth } from 'date-fns'
+import { format, parseISO, startOfMonth } from 'date-fns'
 
 interface Props {
   rawData?: any
   invoices?: any // For backward compatibility if needed
+  onAnalysisReady?: (analysis: string) => void
 }
 
-function linearRegression(y: number[]) {
-  const n = y.length;
-  if (n === 0) return { slope: 0, intercept: 0 };
-  if (n === 1) return { slope: 0, intercept: y[0] };
-  let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-  for (let i = 0; i < n; i++) {
-    sumX += i;
-    sumY += y[i];
-    sumXY += i * y[i];
-    sumXX += i * i;
-  }
-  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-  const intercept = (sumY - slope * sumX) / n;
-  return { slope, intercept };
-}
-
-export function RevenueAnalysisChart({ rawData, invoices: oldInvoices }: Props) {
-  const chartData = useMemo(() => {
+export function RevenueAnalysisChart({ rawData, invoices: oldInvoices, onAnalysisReady }: Props) {
+  const historicalData = useMemo(() => {
     // Determine data source
     let invoices = oldInvoices || []
     let expenses = []
@@ -102,7 +87,7 @@ export function RevenueAnalysisChart({ rawData, invoices: oldInvoices }: Props) 
 
     // If we have API FX rates, distribute them into their respective months
     if (fxRates && Object.keys(fxRates).length > 0) {
-      Object.keys(fxRates).forEach(dateStr => {
+      Object.keys(fxRates).forEach((dateStr: string) => {
         const monthKey = dateStr.substring(0, 7); // "YYYY-MM"
         if (monthlyData[monthKey]) {
           monthlyData[monthKey].exchangeRates.push(fxRates[dateStr].INR)
@@ -116,7 +101,7 @@ export function RevenueAnalysisChart({ rawData, invoices: oldInvoices }: Props) 
 
     // 2. Compute historical actuals
     let lastKnownRate = 84;
-    const historical = sortedMonths.map(m => {
+    return sortedMonths.map(m => {
       let avgRate = lastKnownRate;
       if (m.exchangeRates.length > 0) {
         avgRate = m.exchangeRates.reduce((a, b) => a + b, 0) / m.exchangeRates.length;
@@ -128,49 +113,74 @@ export function RevenueAnalysisChart({ rawData, invoices: oldInvoices }: Props) 
         revenue: m.revenueUSD,
         expense: m.expenseINR / avgRate, // Expense factored by exchange rate (converted to USD)
         exchangeRate: avgRate,
-        isPrediction: false
+        isPrediction: false,
+        realizedRevenueINR: m.revenueUSD * avgRate,
+        expensesINR: m.expenseINR
       }
     })
+  }, [rawData, oldInvoices])
 
-    // 3. Linear Regression using historical range ONLY
-    const revModel = linearRegression(historical.map(h => h.revenue))
-    const expModel = linearRegression(historical.map(h => h.expense))
-    const fxModel = linearRegression(historical.map(h => h.exchangeRate))
+  const [predictions, setPredictions] = useState<any[]>([])
 
-    const n = historical.length;
-    
-    // 4. Generate Predictions for the next 6 months
-    const lastDate = historical[n - 1].date;
-    const predictions = [];
-
-    // Link point so the chart is continuous
-    historical[n - 1] = {
-      ...historical[n - 1],
-      predictedRevenue: historical[n - 1].revenue,
-      predictedExpense: historical[n - 1].expense,
-      predictedExchangeRate: historical[n - 1].exchangeRate,
-    } as any
-
-    for (let i = 1; i <= 6; i++) {
-      const predDate = addMonths(lastDate, i)
-      const fx = fxModel.slope * (n - 1 + i) + fxModel.intercept
-      const predictedFX = Math.max(fx, 50) 
-      
-      const rev = revModel.slope * (n - 1 + i) + revModel.intercept
-      const exp = expModel.slope * (n - 1 + i) + expModel.intercept
-      
-      predictions.push({
-        name: format(predDate, 'MMM yy'),
-        date: predDate,
-        predictedRevenue: Math.max(0, rev),
-        predictedExpense: Math.max(0, exp),
-        predictedExchangeRate: predictedFX,
-        isPrediction: true
-      })
+  useEffect(() => {
+    if (historicalData.length === 0) {
+      setPredictions([])
+      return
     }
 
-    return [...historical, ...predictions]
-  }, [rawData, oldInvoices])
+    const fetchPredictions = async () => {
+      try {
+        const lastDate = historicalData[historicalData.length - 1].date.toISOString()
+        const res = await fetch('/api/analytics/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            historicalData: historicalData.map(d => ({
+              name: d.name,
+              realizedRevenueINR: d.realizedRevenueINR,
+              expensesINR: d.expensesINR,
+              avgDollarValue: d.exchangeRate
+            })),
+            lastDate
+          })
+        })
+        const data = await res.json()
+        if (data.predictions) {
+          // Parse string dates back to Date objects
+          const parsedPredictions = data.predictions.map((p: any) => ({
+            ...p,
+            date: parseISO(p.date)
+          }))
+          setPredictions(parsedPredictions)
+          
+          if (data.dollarRateAnalysis && onAnalysisReady) {
+            onAnalysisReady(data.dollarRateAnalysis)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch predictions', err)
+      }
+    }
+
+    fetchPredictions()
+  }, [historicalData])
+
+  const chartData = useMemo(() => {
+    if (historicalData.length === 0) return []
+    if (predictions.length === 0) return historicalData
+
+    // Link point so the chart is continuous
+    const n = historicalData.length;
+    const linkedHistorical = [...historicalData];
+    linkedHistorical[n - 1] = {
+      ...linkedHistorical[n - 1],
+      predictedRevenue: linkedHistorical[n - 1].revenue,
+      predictedExpense: linkedHistorical[n - 1].expense,
+      predictedExchangeRate: linkedHistorical[n - 1].exchangeRate,
+    } as any
+
+    return [...linkedHistorical, ...predictions]
+  }, [historicalData, predictions])
 
   const lastHistoricalMonthName = useMemo(() => {
     if (chartData.length === 0) return ''
@@ -262,6 +272,13 @@ export function RevenueAnalysisChart({ rawData, invoices: oldInvoices }: Props) 
 
                   if (name === 'avg dollar value' || name === 'predicted avg dollar value') {
                     return [`₹${num.toFixed(2)}`, label]
+                  }
+
+                  if (name === 'expense' || name === 'predictedExpense') {
+                    const rawINR = props.payload.expensesINR;
+                    if (rawINR !== undefined && !isNaN(rawINR)) {
+                      return [`₹${rawINR.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label]
+                    }
                   }
 
                   const formatted = `$${isNaN(num) ? 0 : num.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
