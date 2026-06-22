@@ -22,6 +22,8 @@ function TeamsContent() {
     router.push(`/teams?tab=${newTab}`)
   }
 
+  const hasAdminWorkspace = accountProps.workspaces.some((ws: any) => ws.role === 'ADMIN')
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
@@ -42,16 +44,18 @@ function TeamsContent() {
           >
             Workspaces
           </button>
-          <button
-            onClick={() => handleTabChange('invitations')}
-            className={`py-4 px-5 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'invitations'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-neutral-500 hover:text-neutral-300'
-            }`}
-          >
-            Invitations
-          </button>
+          {(!accountProps.loading && hasAdminWorkspace) || (accountProps.loading && activeTab === 'invitations') ? (
+            <button
+              onClick={() => handleTabChange('invitations')}
+              className={`py-4 px-5 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'invitations'
+                  ? 'border-indigo-500 text-indigo-400'
+                  : 'border-transparent text-neutral-500 hover:text-neutral-300'
+              }`}
+            >
+              Invitations
+            </button>
+          ) : null}
         </div>
 
         <div className="p-8 space-y-6">
@@ -62,7 +66,7 @@ function TeamsContent() {
               <CreateWorkspaceModal {...accountProps} />
             </div>
           )}
-          {activeTab === 'invitations' && <TeamSettingsTab />}
+          {activeTab === 'invitations' && hasAdminWorkspace && <TeamSettingsTab />}
         </div>
       </div>
     </div>

@@ -47,10 +47,13 @@ export function WorkspaceList({ workspaces, loading, setShowCreateModal, openMan
                   </span>
                 </td>
                 <td className="py-3 text-neutral-400">
-                  <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => openManage(ws)}
+                    className="flex items-center gap-1.5 hover:text-indigo-400 transition-colors"
+                  >
                     <Users className="w-3.5 h-3.5" />
                     {ws.memberCount}
-                  </div>
+                  </button>
                 </td>
                 <td className="py-3 text-right">
                   <button
