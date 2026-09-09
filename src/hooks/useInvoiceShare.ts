@@ -18,10 +18,12 @@ export function useInvoiceShare(invoice: any) {
     };
   };
 
-  const downloadPdf = () => {
+  const downloadPdf = (customName?: string) => {
+    const finalName = (customName || fileName).replace(/\.pdf$/i, '') + '.pdf';
+    const fetchUrl = `${pdfUrl}?filename=${encodeURIComponent(finalName)}`;
     const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = fileName;
+    link.href = fetchUrl;
+    link.download = finalName;
     document.body.appendChild(link);
     link.click();
     link.remove();
