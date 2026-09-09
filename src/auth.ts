@@ -127,36 +127,59 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         }
 
-        const memberships = await prisma.workspaceMember.findMany({
+        let memberships = await prisma.workspaceMember.findMany({
           where: { userId },
           include: { workspace: true },
           orderBy: { invitedAt: 'asc' },
         })
+
         if (memberships.length === 0) {
-          const email = session.user?.email || token?.email || 'user@example.com'
-          const name = session.user?.name || token?.name || 'My'
-          const slug = `${email.split('@')[0]}-${Date.now()}`
-          const workspace = await prisma.workspace.create({
-            data: {
-              name: `${name}'s Workspace`,
-              slug,
-              ownerId: userId,
-              members: { create: { userId: userId, role: 'ADMIN' } },
-            },
+          // Check if there is an existing seeded workspace (e.g. Invoxa Global Operations)
+          const primaryWorkspace = await prisma.workspace.findFirst({
+            orderBy: { createdAt: 'asc' }
           })
-          session.user.workspaces = [{ id: workspace.id, name: workspace.name, role: 'ADMIN' }]
-          session.user.currentWorkspaceId = workspace.id
-          session.user.currentRole = 'ADMIN'
-        } else {
-          session.user.workspaces = memberships.map((m) => ({
-            id: m.workspaceId,
-            name: m.workspace.name,
-            role: m.role as 'ADMIN' | 'EDITOR',
-          }))
-          const selectedMembership = activeWorkspaceId
-            ? memberships.find((m) => m.workspaceId === activeWorkspaceId)
-            : null
-          const resolvedMembership = selectedMembership ?? memberships[0]
+
+          if (primaryWorkspace) {
+            await prisma.workspaceMember.create({
+              data: {
+                workspaceId: primaryWorkspace.id,
+                userId,
+                role: 'ADMIN',
+              }
+            })
+            memberships = await prisma.workspaceMember.findMany({
+              where: { userId },
+              include: { workspace: true },
+            })
+          } else {
+            const email = session.user?.email || token?.email || 'user@example.com'
+            const name = session.user?.name || token?.name || 'My'
+            const slug = `${email.split('@')[0]}-${Date.now()}`
+            const workspace = await prisma.workspace.create({
+              data: {
+                name: `${name}'s Workspace`,
+                slug,
+                ownerId: userId,
+                members: { create: { userId: userId, role: 'ADMIN' } },
+              },
+            })
+            memberships = await prisma.workspaceMember.findMany({
+              where: { userId },
+              include: { workspace: true },
+            })
+          }
+        }
+
+        session.user.workspaces = memberships.map((m) => ({
+          id: m.workspaceId,
+          name: m.workspace.name,
+          role: m.role as 'ADMIN' | 'EDITOR',
+        }))
+        const selectedMembership = activeWorkspaceId
+          ? memberships.find((m) => m.workspaceId === activeWorkspaceId)
+          : null
+        const resolvedMembership = selectedMembership ?? memberships[0]
+        if (resolvedMembership) {
           session.user.currentWorkspaceId = resolvedMembership.workspaceId
           session.user.currentRole = resolvedMembership.role as 'ADMIN' | 'EDITOR'
         }

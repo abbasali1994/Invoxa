@@ -31,7 +31,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const month = monthNames[dateObj.getMonth()];
     const year = dateObj.getFullYear();
     const safeCompanyName = (invoice.client?.name || 'invoice').replace(/[^a-zA-Z0-9]/g, '_');
-    const filename = `${safeCompanyName}-${month}-${year}.pdf`;
+    
+    const customFilename = request.nextUrl.searchParams.get('filename');
+    const filename = customFilename
+      ? customFilename.endsWith('.pdf') ? customFilename : `${customFilename}.pdf`
+      : `${safeCompanyName}-${month}-${year}.pdf`;
 
     return new NextResponse(buffer as unknown as BodyInit, {
       headers: {

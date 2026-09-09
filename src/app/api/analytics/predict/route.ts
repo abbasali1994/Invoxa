@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenAI } from '@google/genai';
+import { aiService } from '@/lib/ai-service'
 import { addMonths, format, parseISO } from 'date-fns'
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,32 +45,19 @@ export async function POST(req: NextRequest) {
       Do NOT predict zero revenue or expenses if there's an ongoing trend. Ensure your numbers reflect logical business continuity based on the historical conversion rate and overall growth.
     `;
 
-    let response;
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro'];
-    let lastError: any;
-
-    for (const model of modelsToTry) {
-      try {
-        response = await ai.models.generateContent({
-          model,
-          contents: prompt,
-        });
-        break; // success, exit the loop
-      } catch (e: any) {
-        lastError = e;
-        console.warn(`Model ${model} failed with:`, e.message);
-      }
+    interface PredictionResponse {
+      predictions?: Array<{
+        predictedExchangeRate: number;
+        realizedRevenueINR: number;
+        expensesINR: number;
+      }>;
+      dollarRateAnalysis?: string;
     }
 
-    if (!response) {
-      throw lastError || new Error("All Gemini prediction models failed.");
+    const predictionsJson = await aiService.extractJSON<PredictionResponse>(prompt);
+    if (!predictionsJson) {
+      throw new Error("Failed to generate predictive financial model output.");
     }
-
-    let rawText = response.text || "[]";
-    // Clean up potential markdown formatting
-    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    const predictionsJson = JSON.parse(rawText);
     const predictionsArray = predictionsJson.predictions || [];
     const dollarRateAnalysis = predictionsJson.dollarRateAnalysis || '';
 
