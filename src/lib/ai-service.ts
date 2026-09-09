@@ -5,30 +5,35 @@ export interface AIServiceOptions {
 
 export class AIService {
   private isMock: boolean = false;
-  private groqApiKey: string | null = null;
+  private apiKey: string | null = null;
+  private baseUrl: string = 'https://api.groq.com/openai/v1';
+  private defaultModel: string = 'openai/gpt-oss-120b';
 
   constructor() {
-    this.groqApiKey = process.env.GROQ_API_KEY || null;
-    if (!this.groqApiKey) {
-      console.warn('GROQ_API_KEY is not set. AIService will use mock fallback.');
+    this.apiKey = process.env.AI_API_KEY || process.env.GROQ_API_KEY || null;
+    this.baseUrl = process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1';
+    this.defaultModel = process.env.AI_MODEL || 'openai/gpt-oss-120b';
+
+    if (!this.apiKey) {
+      console.warn('AI_API_KEY / GROQ_API_KEY is not set. AIService will use mock fallback.');
       this.isMock = true;
     }
   }
 
   async generateText(prompt: string, options: AIServiceOptions = {}): Promise<string> {
-    if (this.isMock || !this.groqApiKey) {
+    if (this.isMock || !this.apiKey) {
       return this.mockGenerateText(prompt);
     }
 
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.groqApiKey}`,
+          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: options.model || 'llama-3.1-8b-instant',
+          model: options.model || this.defaultModel,
           max_tokens: options.maxTokens || 1024,
           messages: [{ role: 'user', content: prompt }],
         })
@@ -40,7 +45,7 @@ export class AIService {
       }
       return '';
     } catch (error) {
-      console.error('Error calling Groq API:', error);
+      console.error('Error calling AI API:', error);
       return this.mockGenerateText(prompt); // Fallback on error
     }
   }
@@ -48,19 +53,19 @@ export class AIService {
   async extractJSON<T>(prompt: string, options: AIServiceOptions = {}): Promise<T | null> {
     const systemPrompt = `You are a specialized data extraction AI. You MUST output ONLY valid JSON. Do not wrap it in markdown code blocks or provide any conversational text. Just the raw JSON object.`;
     
-    if (this.isMock || !this.groqApiKey) {
+    if (this.isMock || !this.apiKey) {
       return this.mockExtractJSON<T>(prompt);
     }
 
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.groqApiKey}`,
+          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: options.model || 'llama-3.1-8b-instant',
+          model: options.model || this.defaultModel,
           max_tokens: options.maxTokens || 1024,
           response_format: { type: "json_object" },
           messages: [

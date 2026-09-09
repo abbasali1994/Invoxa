@@ -221,8 +221,9 @@ Schema:
     const prompt = `Analyze the following aggregated financial ledger data and generate the JSON report:
 ${JSON.stringify(compressedPayload)}`
 
+    const model = process.env.AI_MODEL || 'openai/gpt-oss-120b'
     const response = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: model,
       messages: [
         { role: 'system', content: systemInstruction },
         { role: 'user', content: prompt }
@@ -231,7 +232,7 @@ ${JSON.stringify(compressedPayload)}`
     })
 
     const text = response.choices[0]?.message?.content
-    if (!text) throw new Error('No text returned from Groq')
+    if (!text) throw new Error(`No text returned from ${model}`)
 
     // Parse the JSON to ensure it's valid before sending it to the client
     const jsonResponse = JSON.parse(text)
